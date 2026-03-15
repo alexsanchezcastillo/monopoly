@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Monopoly Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        #svg-display {
+            max-width: 90vw;
+            max-height: 85vh;
+        }
+        .controls {
+            margin-top: 0px;
+        }
+        button {
+            font-size: 32px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .info {
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img id="svg-display" src="games/tauler-0000.svg" alt="SVG Image">
+        <div class="controls">
+            <button id="btn-first" onclick="goToFirst()">⏮️</button>
+            <button id="btn-prev" onclick="goToPrev()">⬅️</button>
+            <button id="btn-next" onclick="goToNext()">➡️</button>
+            <button id="btn-last" onclick="goToLast()">⏭️</button>
+        </div>
+        <div class="info">
+            <span id="current-info">1 / 204</span>
+        </div>
+    </div>
+    
+    <script>
+        const svgPaths = ['games/tauler-0000.svg', 'games/tauler-0001.svg', 'games/tauler-0002.svg', 'games/tauler-0003.svg', 'games/tauler-0004.svg', 'games/tauler-0005.svg', 'games/tauler-0006.svg', 'games/tauler-0007.svg', 'games/tauler-0008.svg', 'games/tauler-0009.svg', 'games/tauler-0010.svg', 'games/tauler-0011.svg', 'games/tauler-0012.svg', 'games/tauler-0013.svg', 'games/tauler-0014.svg', 'games/tauler-0015.svg', 'games/tauler-0016.svg', 'games/tauler-0017.svg', 'games/tauler-0018.svg', 'games/tauler-0019.svg', 'games/tauler-0020.svg', 'games/tauler-0021.svg', 'games/tauler-0022.svg', 'games/tauler-0023.svg', 'games/tauler-0024.svg', 'games/tauler-0025.svg', 'games/tauler-0026.svg', 'games/tauler-0027.svg', 'games/tauler-0028.svg', 'games/tauler-0029.svg', 'games/tauler-0030.svg', 'games/tauler-0031.svg', 'games/tauler-0032.svg', 'games/tauler-0033.svg', 'games/tauler-0034.svg', 'games/tauler-0035.svg', 'games/tauler-0036.svg', 'games/tauler-0037.svg', 'games/tauler-0038.svg', 'games/tauler-0039.svg', 'games/tauler-0040.svg', 'games/tauler-0041.svg', 'games/tauler-0042.svg', 'games/tauler-0043.svg', 'games/tauler-0044.svg', 'games/tauler-0045.svg', 'games/tauler-0046.svg', 'games/tauler-0047.svg', 'games/tauler-0048.svg', 'games/tauler-0049.svg', 'games/tauler-0050.svg', 'games/tauler-0051.svg', 'games/tauler-0052.svg', 'games/tauler-0053.svg', 'games/tauler-0054.svg', 'games/tauler-0055.svg', 'games/tauler-0056.svg', 'games/tauler-0057.svg', 'games/tauler-0058.svg', 'games/tauler-0059.svg', 'games/tauler-0060.svg', 'games/tauler-0061.svg', 'games/tauler-0062.svg', 'games/tauler-0063.svg', 'games/tauler-0064.svg', 'games/tauler-0065.svg', 'games/tauler-0066.svg', 'games/tauler-0067.svg', 'games/tauler-0068.svg', 'games/tauler-0069.svg', 'games/tauler-0070.svg', 'games/tauler-0071.svg', 'games/tauler-0072.svg', 'games/tauler-0073.svg', 'games/tauler-0074.svg', 'games/tauler-0075.svg', 'games/tauler-0076.svg', 'games/tauler-0077.svg', 'games/tauler-0078.svg', 'games/tauler-0079.svg', 'games/tauler-0080.svg', 'games/tauler-0081.svg', 'games/tauler-0082.svg', 'games/tauler-0083.svg', 'games/tauler-0084.svg', 'games/tauler-0085.svg', 'games/tauler-0086.svg', 'games/tauler-0087.svg', 'games/tauler-0088.svg', 'games/tauler-0089.svg', 'games/tauler-0090.svg', 'games/tauler-0091.svg', 'games/tauler-0092.svg', 'games/tauler-0093.svg', 'games/tauler-0094.svg', 'games/tauler-0095.svg', 'games/tauler-0096.svg', 'games/tauler-0097.svg', 'games/tauler-0098.svg', 'games/tauler-0099.svg', 'games/tauler-0100.svg', 'games/tauler-0101.svg', 'games/tauler-0102.svg', 'games/tauler-0103.svg', 'games/tauler-0104.svg', 'games/tauler-0105.svg', 'games/tauler-0106.svg', 'games/tauler-0107.svg', 'games/tauler-0108.svg', 'games/tauler-0109.svg', 'games/tauler-0110.svg', 'games/tauler-0111.svg', 'games/tauler-0112.svg', 'games/tauler-0113.svg', 'games/tauler-0114.svg', 'games/tauler-0115.svg', 'games/tauler-0116.svg', 'games/tauler-0117.svg', 'games/tauler-0118.svg', 'games/tauler-0119.svg', 'games/tauler-0120.svg', 'games/tauler-0121.svg', 'games/tauler-0122.svg', 'games/tauler-0123.svg', 'games/tauler-0124.svg', 'games/tauler-0125.svg', 'games/tauler-0126.svg', 'games/tauler-0127.svg', 'games/tauler-0128.svg', 'games/tauler-0129.svg', 'games/tauler-0130.svg', 'games/tauler-0131.svg', 'games/tauler-0132.svg', 'games/tauler-0133.svg', 'games/tauler-0134.svg', 'games/tauler-0135.svg', 'games/tauler-0136.svg', 'games/tauler-0137.svg', 'games/tauler-0138.svg', 'games/tauler-0139.svg', 'games/tauler-0140.svg', 'games/tauler-0141.svg', 'games/tauler-0142.svg', 'games/tauler-0143.svg', 'games/tauler-0144.svg', 'games/tauler-0145.svg', 'games/tauler-0146.svg', 'games/tauler-0147.svg', 'games/tauler-0148.svg', 'games/tauler-0149.svg', 'games/tauler-0150.svg', 'games/tauler-0151.svg', 'games/tauler-0152.svg', 'games/tauler-0153.svg', 'games/tauler-0154.svg', 'games/tauler-0155.svg', 'games/tauler-0156.svg', 'games/tauler-0157.svg', 'games/tauler-0158.svg', 'games/tauler-0159.svg', 'games/tauler-0160.svg', 'games/tauler-0161.svg', 'games/tauler-0162.svg', 'games/tauler-0163.svg', 'games/tauler-0164.svg', 'games/tauler-0165.svg', 'games/tauler-0166.svg', 'games/tauler-0167.svg', 'games/tauler-0168.svg', 'games/tauler-0169.svg', 'games/tauler-0170.svg', 'games/tauler-0171.svg', 'games/tauler-0172.svg', 'games/tauler-0173.svg', 'games/tauler-0174.svg', 'games/tauler-0175.svg', 'games/tauler-0176.svg', 'games/tauler-0177.svg', 'games/tauler-0178.svg', 'games/tauler-0179.svg', 'games/tauler-0180.svg', 'games/tauler-0181.svg', 'games/tauler-0182.svg', 'games/tauler-0183.svg', 'games/tauler-0184.svg', 'games/tauler-0185.svg', 'games/tauler-0186.svg', 'games/tauler-0187.svg', 'games/tauler-0188.svg', 'games/tauler-0189.svg', 'games/tauler-0190.svg', 'games/tauler-0191.svg', 'games/tauler-0192.svg', 'games/tauler-0193.svg', 'games/tauler-0194.svg', 'games/tauler-0195.svg', 'games/tauler-0196.svg', 'games/tauler-0197.svg', 'games/tauler-0198.svg', 'games/tauler-0199.svg', 'games/tauler-0200.svg', 'games/tauler-0201.svg', 'games/tauler-0202.svg', 'games/tauler-0203.svg'];
+        let currentIndex = 0;
+        
+        function updateDisplay() {
+            const img = document.getElementById('svg-display');
+            img.src = svgPaths[currentIndex];
+            
+            document.getElementById('current-info').textContent = 
+                (currentIndex + 1) + ' / ' + svgPaths.length;
+            
+            // Update button states
+            document.getElementById('btn-first').disabled = currentIndex === 0;
+            document.getElementById('btn-prev').disabled = currentIndex === 0;
+            document.getElementById('btn-next').disabled = currentIndex === svgPaths.length - 1;
+            document.getElementById('btn-last').disabled = currentIndex === svgPaths.length - 1;
+        }
+        
+        function goToFirst() {
+            currentIndex = 0;
+            updateDisplay();
+        }
+        
+        function goToPrev() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateDisplay();
+            }
+        }
+        
+        function goToNext() {
+            if (currentIndex < svgPaths.length - 1) {
+                currentIndex++;
+                updateDisplay();
+            }
+        }
+        
+        function goToLast() {
+            currentIndex = svgPaths.length - 1;
+            updateDisplay();
+        }
+        
+        // Initialize on page load
+        updateDisplay();
+    </script>
+</body>
+</html>
