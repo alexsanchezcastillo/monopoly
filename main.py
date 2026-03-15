@@ -1,10 +1,9 @@
 from board import Board
 from draw import draw
+from slideshow import generate_slideshow
 import os
 import shutil
 from typing import Tuple
-
-# This is the main entry point of the Monopoly game simulation.
 
 def play_game(board: Board, max_turns: int = 500,
               save_svg: bool = True, output_prefix: str = "tauler", 
@@ -97,7 +96,14 @@ def main() -> None:
     play_game(board, max_turns=500, save_svg=True, 
               output_prefix="tauler", output_dir=output_dir)
 
+    # Generate slideshow HTML with the new SVGs
+    svg_files = sorted(f for f in os.listdir(output_dir) if f.endswith(".svg"))
+    svg_paths = [os.path.join(output_dir, f) for f in svg_files]
+    html = generate_slideshow(svg_paths)
+    with open("game.html", "w") as f:
+        f.write(html)
+    print(f"Generated game.html with {len(svg_files)} frames.")
+
 
 if __name__ == "__main__":
     main()
-

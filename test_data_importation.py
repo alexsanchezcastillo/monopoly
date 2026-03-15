@@ -1,10 +1,12 @@
+"""Test for basic data importation from JSON files."""
+
 import board as b
 from pathlib import Path
 
-# Això troba la carpeta on està EL FITXER QUE ESTÀS ESCRIUENT ARA
+# Resolve the directory where this test file is located
 BASE_DIR = Path(__file__).resolve().parent
 
-# Ara unim la base amb la carpeta data
+# Build paths to the data files
 tiles_json_path = str(BASE_DIR / "data" / "tiles.json")
 chance_json_path = str(BASE_DIR / "data" / "chance.json")
 community_chest_json_path = str(BASE_DIR / "data" / "community-chest.json")

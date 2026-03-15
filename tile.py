@@ -227,19 +227,17 @@ class Street(Property):
     def get_rent(self) -> int:
         """Returns the price that a player has to pay if 
         they land on the street at the current stage."""
-        # 1. Si està hipotecada, la renda és 0
+        # 1. Mortgaged properties charge no rent
         if self.is_mortgaged():
             return 0
 
-        # 2. Si hi ha un hotel (sempre és el màxim)
+        # 2. Hotel provides the maximum rent tier
         if self.has_hotel():
-            return self._rent_with_hotel  # Valor "rentWithHotel" del JSON
+            return self._rent_with_hotel
 
-        # 3. Si hi ha cases (1, 2, 3 o 4)
+        # 3. Rents based on the number of houses
         num_houses = self.num_houses()
         if num_houses > 0:
-            # Aquí fem servir una llista o diccionari amb els valors del JSON
-            # rentWith1House, rentWith2Houses, etc.
             rents_houses = [
                 self._rent_with_1_house, 
                 self._rent_with_2_houses, 
@@ -248,13 +246,11 @@ class Street(Property):
             ]
             return rents_houses[num_houses - 1]
 
-        # 4. Si no hi ha edificis, comprovem el monopoli (Color Set)
-        base_rent = self._rent  # Valor "rent" del JSON
-        
-        # Necessitem saber si el propietari té tot el grup de color
+        # 4. No buildings: check if the owner has a color-set monopoly
+        base_rent = self._rent
         owner = self.get_owner()
         if owner is not None and self._board.has_monopoly(owner, self.color()):
-            return self._rent_with_color_set  # Normalment el doble de la base
+            return self._rent_with_color_set
         
         return base_rent
     # Houses actions:
@@ -515,9 +511,9 @@ class Community_Chest(Tile):
         super().__init__(board, position, name, tile_type, description)
     
     def land_on(self, player: Player) -> None:
-        # Exemple per Chance (has d'adaptar-ho a com tinguis els decks al Board)
+        """Draws a Community Chest card, executes it, then returns it to the deck."""
         card = self._board.community_chest_deck().draw()
-        print(f"{player.name()} draws Chance: {card.title()}")
+        print(f"{player.name()} draws Community Chest: {card.title()}")
         card.execute(player, self._board)
         self._board.community_chest_deck().add_card(card)
 
@@ -534,7 +530,7 @@ class Chance(Tile):
         super().__init__(board, position, name, tile_type, description)
     
     def land_on(self, player: 'Player') -> None:
-        # Exemple per Chance (has d'adaptar-ho a com tinguis els decks al Board)
+        """Draws a Chance card, executes it, then returns it to the deck."""
         card = self._board.chance_deck().draw()
         print(f"{player.name()} draws Chance: {card.title()}")
         card.execute(player, self._board)
@@ -553,8 +549,9 @@ class Special(Tile):
         super().__init__(board, position, name, tile_type, description)
     
     def land_on(self, player: Player) -> None:
+        """Sends the player to jail if this is the 'Go To Jail' tile."""
         if self._name == "Go To Jail":
-            player.go_to_jail(10)    # 10 és la posició de la presó al teu JSON
+            player.go_to_jail(10)
 
 def build_tile(board: Board, data: dict[str, Any]) -> Tile:
     """

@@ -36,14 +36,14 @@ class Player:
     ): 
         """Initializes a new player with data from the JSON file."""
 
-        # atributes from json
+        # Attributes loaded from JSON
         self._board = board
         self._name = name
         self._color = color
         self._piece = piece
         self._index = index  
         
-       # dinamic atributes
+        # Dynamic attributes (game state)
         self._position = 0  
         self._money = START_MONEY  
         self._is_in_jail = False
@@ -77,13 +77,12 @@ class Player:
         old_position = self._position
         total_tiles = self._board.num_tiles()
         
-        # 1. Update the position wrapping around the board (0 to 39)
+        # Update position wrapping around the board
         self._position = (self._position + steps) % total_tiles
         
-        # 2. Check if the player passed GO (new position is smaller than old position)
+        # Check if the player passed GO (new position wrapped around)
         if self._position < old_position:
             self._money += const.GO_SALARY
-            # Opcional: un print per anar veient què passa a la terminal
             print(f"{self._name} passed GO and collected {const.GO_SALARY}!")
 
     def move_to(self, position: int) -> None:
@@ -97,10 +96,10 @@ class Player:
         old_position = self._position
         total_tiles = self._board.num_tiles()
         
-        # 1. Update the position directly to the target
+        # Update position directly to the target
         self._position = position % total_tiles
         
-        # 2. Check if the player passed GO (new position is smaller than old position)
+        # Check if the player passed GO
         if self._position < old_position:
             self._money += const.GO_SALARY
             print(f"{self._name} passed GO and collected {const.GO_SALARY}!")
@@ -196,12 +195,12 @@ class Player:
         return self._owned_properties
     
     def transaction(self, amount: int) -> None:
-        """..."""
+        """Adjusts the player's balance by the given amount (positive or negative)."""
         self._money += amount
         return
     
     def buy_property(self, property_tile: Property) -> None:
-        """..."""
+        """Purchases a property tile: adds it to owned properties, deducts the price, and sets ownership."""
         self._owned_properties.add(property_tile)
         self.transaction(-property_tile.price())
         property_tile.set_owner(self)

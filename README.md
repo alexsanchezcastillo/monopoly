@@ -1,183 +1,184 @@
-# Monopoly Game Implementation
+# Monopoly
 
-A comprehensive Python implementation of the classic Monopoly board game with automated player strategies and SVG visualization support.
+Implementació en Python del joc de taula Monopoly amb jugadors automàtics i visualització SVG.
 
-## Project Overview
+Pràctica de l'assignatura d'Algorísmia i Programació 2 (AP2) del grau en Ciència i Enginyeria de Dades de la UPC.
 
-This project implements the complete logic of the Monopoly board game, allowing multiple players (2-4) to compete against each other. The game features:
+## Descripció
 
-- **Complete game mechanics**: Properties, houses, hotels, mortgages, and utility rent calculations
-- **Automated players**: AI-driven players make decisions based on strategies
-- **Dice mechanics**: Proper handling of doubles and jail system
-- **Card system**: Chance and Community Chest cards with diverse effects
-- **Visualization**: SVG-based board rendering and slideshow generation
-- **Extensible design**: Strategy pattern for easy addition of new AI strategies
+Aquest projecte implementa la lògica completa del joc del Monopoly seguint les [regles oficials](https://instructions.hasbro.com/api/download/C1009_en-nz_monopoly-classic-game.pdf), amb les simplificacions indicades a l'enunciat de la pràctica:
 
-## Architecture
+- **Jugadors**: De 2 a 4 jugadors automàtics. El primer jugador sempre comença.
+- **Cases i hotels**: No hi ha límit en el nombre total disponible.
+- **Propietats no comprades**: No hi ha subhasta si un jugador no compra.
+- **Sense interacció**: Els jugadors no poden negociar ni fer tractes entre ells.
+- **Ordre d'accions**: Les accions de gestió (comprar/vendre cases, hipotecar, etc.) es fan després de moure i completar l'acció de la casella.
+- **Gestió d'una en una**: Cada operació de compra-venda, hipoteca o deshipoteca es fa individualment.
+- **Presó**: El jugador surt de la presó per tirada doble, carta de sortida, o després de 3 torns. No es pot pagar M50.
 
-### Core Modules
+## Arquitectura
 
-- **`const.py`**: Game constants (GO salary, starting money, etc.)
-- **`tile.py`**: Tile hierarchy (base class with specialized types: Property, Street, Station, Utility, Tax, etc.)
-- **`player.py`**: Player representation and state management
-- **`strategy.py`**: Strategy pattern for AI decision-making
-- **`card.py`**: Card system for Chance and Community Chest
-- **`deck.py`**: Card deck with shuffle and draw operations
-- **`board.py`**: Main game board managing all game state and rules
-- **`draw.py`**: SVG visualization of board state
-- **`slideshow.py`**: HTML slideshow generator for game visualization
-- **`main.py`**: Game entry point
+El projecte s'organitza en els mòduls següents:
 
-## Key Features Implemented
+| Mòdul | Descripció |
+|---|---|
+| `const.py` | Constants del joc (salari de sortida, diners inicials, etc.) |
+| `tile.py` | Jerarquia de caselles: `Tile` (base), `Property`, `Street`, `Station`, `Utility`, `Tax`, `Chance`, `Community_Chest`, `Special` |
+| `card.py` | Jerarquia de targetes: `Card` (base), `MoneyCard`, `MoveToPositionCard`, `GoToJailCard`, `GetOutOfJailCard`, `PropertyRepairsCard`, `PlayerTransactionCard`, `MoveNearestCard`, etc. |
+| `deck.py` | Classe `Deck` per gestionar les piles de targetes amb barreja i robada |
+| `player.py` | Classe `Player` amb estat del joc (posició, diners, propietats, presó) |
+| `board.py` | Classe `Board` que gestiona tota la partida, daus, torns i regles |
+| `strategy.py` | Patró estratègia: `PlayerStrategy` (base) i `SimpleStrategy` |
+| `draw.py` | Renderització del tauler en format SVG |
+| `slideshow.py` | Generació de pàgines HTML per visualitzar partides |
+| `main.py` | Punt d'entrada del programa |
 
-### Game Rules
-- **Players**: 2-4 players starting with M1500 at GO position
-- **Movement**: Dice rolls with passes GO collecting M200 salary
-- **Doubles**: Extra turn mechanic, 3 doubles sends to jail
-- **Properties**: Streets, stations, utilities with proper rent calculations
-- **Monopolies**: Double rent when owning complete color set
-- **Jail System**: Entry from doubles/cards, exit via doubles/card/3 turns
-- **Houses & Hotels**: Build on streets with uniform building rules
-- **Mortgages**: Can mortgage properties for 50% value, unmortgage for +10% interest
-- **Cards**: Chance and Community Chest with 16 cards each
-- **Bankruptcy**: Players eliminated when unable to pay debts
+### Diagrama de dependències
 
-### Player Strategies
-The `SimpleStrategy` implementation:
-- Buys properties if cash ≥ property price
-- Does not build houses/hotels
-- Can be extended for more sophisticated strategies
-
-## Code Quality
-
-- ✅ 24/24 tests passing
-- ✅ 0 type errors (mypy validation)
-- ✅ Full type annotations
-- ✅ Clean architecture with inheritance and polymorphism
-- ✅ Factory pattern for object creation
-- ✅ Comprehensive documentation
-
-## Usage
-
-### Running a Game
-```bash
-python main.py
+```
+main.py
+  └── board.py
+        ├── tile.py ──── const.py
+        ├── player.py ── strategy.py
+        ├── deck.py ──── card.py
+        └── draw.py
 ```
 
-Plays a complete game and saves board states as `tauler-NNNN.svg` files.
+## Decisions de disseny
 
-### Running Tests
-```bash
-pytest              # Run all tests
-pytest -v          # Verbose output
-pytest test_tile.py -v  # Specific test file
-```
+### Herència i polimorfisme
 
-### Type Checking
-```bash
-mypy *.py          # Check all type annotations
-```
+S'utilitza una jerarquia de classes tant per a les caselles (`Tile`) com per a les targetes (`Card`). El mètode `land_on()` de `Tile` i `execute()` de `Card` s'implementen de manera diferent a cada subclasse, aprofitant el polimorfisme per evitar condicionals complexos.
 
-### Generating Visualization
-```bash
-python slideshow.py game.html tauler-*.svg
-```
+Per exemple, quan un jugador cau en una casella, simplement es crida `tile.land_on(player)` i el comportament correcte s'executa automàticament segons el tipus de casella (cobrar lloguer, treure una targeta, pagar impostos, etc.).
 
-Creates an interactive HTML slideshow showing game progression.
+### Patró estratègia
 
-## Installation
+Les decisions dels jugadors automàtics (comprar propietats, construir cases) es deleguen a una classe `PlayerStrategy`. Això permet canviar el comportament d'un jugador sense modificar la lògica del joc. La implementació `SimpleStrategy` proporcionada:
 
-### Requirements
-- Python 3.8+
-- `drawsvg` library for SVG graphics
+- Compra qualsevol propietat si té prou diners.
+- Construeix cases/hotels en carrers on té el monopoli, una construcció per torn.
 
-### Setup
+### Funcions fàbrica
+
+Les funcions `build_tile()` i `build_card()` actuen com a fàbriques per crear objectes del tipus adequat a partir de les dades JSON, centralitzant tota la lògica de construcció.
+
+### Gestió de la presó
+
+El sistema de presó segueix les regles simplificades:
+
+1. Si el jugador té una carta de "Sortir de la presó lliure", la utilitza automàticament.
+2. Si no, tira els daus: si surt doble, surt i mou normalment.
+3. Si completa 3 torns a la presó, surt automàticament.
+
+### Càlcul de lloguer
+
+- **Carrers**: El lloguer depèn de si el propietari té el monopoli del color, del nombre de cases o de si hi ha un hotel.
+- **Estacions**: El lloguer augmenta segons el nombre d'estacions que posseeix el propietari (25, 50, 100 o 200).
+- **Serveis públics**: El lloguer es calcula multiplicant la tirada dels daus per un multiplicador (×4 amb un servei, ×10 amb tots dos).
+- Les propietats hipotecades no cobren lloguer.
+
+### Construcció uniforme
+
+La compra i venda de cases segueix la regla de construcció uniforme: no es pot construir una casa addicional en un carrer si qualsevol altre carrer del mateix color té menys cases. Igualment, no es pot vendre una casa si qualsevol altre carrer del mateix color en té més.
+
+## Instal·lació
+
+### Requisits
+
+- Python 3.10+
+- Biblioteca `drawsvg`
+
+### Configuració
+
 ```bash
 pip install drawsvg
 ```
 
-## Test Coverage
+## Ús
 
-Comprehensive test suite including:
-- Board initialization and data loading
-- Player movement and GO collection
-- Property purchase and rent mechanics
-- House/hotel building with monopoly checking
-- Mortgage operations with interest calculation
-- Doubles detection and jail mechanics
-- Card drawing and execution
-- Strategy decision-making
+### Executar una partida
 
-## Design Patterns
+```bash
+python3 main.py
+```
 
-- **Inheritance**: Tile and Card hierarchies use polymorphism
-- **Factory Pattern**: `build_tile()` and `build_card()` functions create objects from JSON
-- **Strategy Pattern**: `PlayerStrategy` interface with plug-in implementations
-- **Composition**: Board composes tiles, players, and card decks
+Això juga una partida completa, genera fitxers SVG per a cada torn a la carpeta `games/` i crea un fitxer `game.html` per visualitzar la partida al navegador.
 
-## Implementation Highlights
+### Executar els tests
 
-### Property Management
-- Land on unowned property triggers purchase decision via strategy
-- Rent calculation respects mortgages, monopolies, and buildings
-- Uniform building rules enforced for houses and hotels
-- Complete bankruptcy handling with asset liquidation
+```bash
+pytest                    # Tots els tests
+pytest -v                 # Sortida detallada
+pytest test_tile.py -v    # Un fitxer de tests concret
+```
 
-### Jail System
-- Entry: Via doubles or landing on "Go To Jail"
-- Exit: Via doubles roll, "Get Out of Jail Free" card, or 3 turns
-- No payment required (simplified from official rules)
-- Proper state tracking for multi-turn imprisonment
+### Verificació de tipus
 
-### Card System
-- 16 different card types with specialized behaviors
-- Cards returned to deck after use (except "Get Out of Jail Free")
-- Full polymorphic implementation of card effects
+```bash
+mypy *.py
+```
 
-## File Structure
+### Generar una presentació
+
+```bash
+python3 slideshow.py partida.html games/tauler-*.svg
+```
+
+## Estructura de fitxers
 
 ```
 programa/
-├── board.py              # Main game engine
-├── card.py              # Card definitions
-├── const.py             # Game constants
-├── deck.py              # Card deck
-├── draw.py              # SVG rendering
-├── drawsvg.pyi          # Type stubs
-├── main.py              # Entry point
-├── player.py            # Player class
-├── slideshow.py         # HTML generator
-├── strategy.py          # AI strategies
-├── tile.py              # Tile hierarchy
-├── test_*.py            # Test suite
-├── README.md            # This file
-└── data/                # JSON configuration
-    ├── tiles.json
-    ├── chance.json
-    ├── community-chest.json
-    └── players.json
+├── board.py                    # Motor principal del joc
+├── card.py                     # Jerarquia de targetes
+├── const.py                    # Constants del joc
+├── deck.py                     # Gestió de la pila de targetes
+├── draw.py                     # Renderització SVG del tauler
+├── drawsvg.pyi                 # Stubs de tipus per drawsvg
+├── main.py                     # Punt d'entrada
+├── player.py                   # Classe jugador
+├── slideshow.py                # Generador HTML de presentació
+├── strategy.py                 # Estratègies dels jugadors automàtics
+├── tile.py                     # Jerarquia de caselles
+├── test_board.py               # Tests del tauler
+├── test_board_coverage.py      # Tests addicionals del tauler
+├── test_card_coverage.py       # Tests de les targetes
+├── test_data_importation.py    # Test d'importació de dades
+├── test_deck.py                # Tests de la pila de targetes
+├── test_draw.py                # Tests de la visualització
+├── test_main.py                # Tests del programa principal
+├── test_player.py              # Tests del jugador
+├── test_slideshow.py           # Tests de la presentació
+├── test_strategy.py            # Tests de l'estratègia
+├── test_tile.py                # Tests de les caselles
+├── test_visual.py              # Test visual manual
+├── README.md                   # Documentació del projecte
+└── data/                       # Fitxers de configuració JSON
+    ├── tiles.json              # Definició de les 40 caselles
+    ├── chance.json             # 16 targetes de Sort
+    ├── community-chest.json    # 16 targetes de Comunitat
+    └── players.json            # Definició dels jugadors
 ```
 
-## Game Configuration
+## Joc de proves
 
-Board and card configuration loaded from JSON:
-- `data/tiles.json`: Complete board layout with 40 tiles
-- `data/chance.json`: 16 Chance cards
-- `data/community-chest.json`: 16 Community Chest cards
-- `data/players.json`: Player definitions (4 players: Jordi, Mireia, Arnau, Marta)
+El projecte inclou un conjunt de tests organitzats per mòdul:
 
-## Future Enhancements
+| Fitxer de test | Què verifica |
+|---|---|
+| `test_board.py` | Inicialització del tauler, tirada de daus, serialització pickle, mecànica de torns amb dobles i presó |
+| `test_board_coverage.py` | Cobertura addicional: cicle de jugadors, tipus de caselles, operacions de propietats |
+| `test_card_coverage.py` | Construcció de targetes des de diccionaris, execució de cada tipus de targeta |
+| `test_deck.py` | Inicialització del deck, robada i devolució de targetes, barreja, mida |
+| `test_player.py` | Inicialització del jugador, moviment, pas per GO, transaccions i fallida |
+| `test_tile.py` | Compra de propietats, lloguer, construcció/venda de cases i hotels, hipoteques |
+| `test_strategy.py` | Estratègia base (NotImplementedError), SimpleStrategy amb diferents nivells de diners |
+| `test_draw.py` | Posicionament de caselles, mapa de colors, generació de fitxers SVG |
+| `test_main.py` | Funció `play_game` amb límit de torns, integració completa |
+| `test_slideshow.py` | Generació HTML de la presentació |
 
-- Advanced AI strategies with property evaluation
-- Trading between players
-- Auction system for unpurchased properties
-- Interactive mode with human players
-- Network multiplayer support
-- Replay system with game recording
+Per executar tots els tests:
 
-## Notes
-
-- Game termination: Last solvent player wins
-- Turn order preserved: Players play in JSON order
-- Random seed: `seed(25)` for reproducible games
-- Safety: 1000-turn limit prevents infinite loops
+```bash
+pytest -v
+```

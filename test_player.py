@@ -1,6 +1,4 @@
 from board import Board
-
-# Suposant que tens aquestes constants al teu fitxer const.py
 from const import START_MONEY, GO_SALARY
 
 

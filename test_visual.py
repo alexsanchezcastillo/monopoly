@@ -8,9 +8,7 @@ taulell = Board(
     "data/players.json"
 )
 
-# ... (imports i codi previ on crees el 'board') ...
-
-# --- NEW: Manual movement test ---
+# Manual movement test
 # Get the first two players from the board
 player_1 = taulell.get_player(0)
 player_2 = taulell.get_player(1)
@@ -25,12 +23,10 @@ player_2.move(10)
 # 5 + 37 = 42 -> wraps to tile 2 (Community Chest)
 player_1.move(37) 
 
-# --- END NEW ---
-
-# Generem el dibuix amb les noves posicions
+# Generate the SVG drawing with the updated positions
 
 try:
     draw(taulell, "meu_tauler.svg")
-    print("✅ Èxit! S'ha generat 'meu_tauler.svg'. Obre'l amb el navegador.")
+    print("Success! Generated 'meu_tauler.svg'. Open it in a browser.")
 except Exception as e:
     print(f"❌ Error en dibuixar: {e}")

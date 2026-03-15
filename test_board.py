@@ -46,7 +46,7 @@ def test_get_tile_wrap_around() -> None:
     assert tile_0 == tile_40
     assert board.get_tile(1) == tile_41
 
-def test_save_and_load_board() -> None: # ajustar-ho a com ho faria jo
+def test_save_and_load_board() -> None:
     """Tests the pickle serialization and deserialization functions."""
     board = create_test_board()
     

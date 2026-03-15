@@ -8,7 +8,11 @@ from deck import Deck
 
 
 class Board:
-    """..."""
+    """Represents the complete Monopoly game board, including tiles, card decks, and players.
+    
+    Manages all game logic: dice rolling, turn progression, jail handling,
+    building phases, and win/loss conditions.
+    """
     _tiles_path: str
     _chance_path: str
     _community_chest_path: str
@@ -47,7 +51,7 @@ class Board:
 
         with open(players_json_path, 'r', encoding='utf-8') as f:
             players_data = json.load(f)
-            # We asign an index to each player based on their order in the JSON file, which is needed in the function build_player().
+            # Assign an index to each player based on their order in the JSON file.
             self._list_players = [
                 build_player(self, data, i) for i, data in enumerate(players_data)
             ]
@@ -172,7 +176,7 @@ class Board:
         return len(self._list_tiles)
     
     def dice(self) -> tuple[int, int]:
-        """Llença el dau, guarda la info a _current_dice i retorna el dice"""
+        """Returns the most recent dice roll result."""
         return self._current_dice
 
     def num_tiles(self) -> int:
@@ -256,9 +260,8 @@ class Board:
     def community_chest_deck(self) -> Deck:
         return self._community_chest_deck
     
-    # Dins de board.py
     def has_monopoly(self, player: Player, color: str) -> bool:
-        """Retorna True si el jugador té totes les propietats d'aquest color."""
+        """Returns True if the player owns all properties of the given color."""
         color_group = self.get_color_group(color)
         if not color_group:
             return False
