@@ -22,6 +22,14 @@ def play_game(board: Board, max_turns: int = 1000,
     
     os.makedirs(output_dir, exist_ok=True)
 
+    # Clean up any old SVG files from previous games with this prefix
+    for file in os.listdir(output_dir):
+        if file.startswith(output_prefix) and file.endswith(".svg"):
+            try:
+                os.remove(os.path.join(output_dir, file))
+            except OSError:
+                pass  # If file is in use or can't be deleted, continue anyway
+
     # Save initial board state
     draw(board, os.path.join(output_dir, f"{output_prefix}-0000.svg"))
     
@@ -78,13 +86,7 @@ def main() -> None:
     output_dir = "games"
     
     # Create output directory if it doesn't exist
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    else:
-        # Remove all previous SVG files
-        for file in os.listdir(output_dir):
-            if file.endswith(".svg"):
-                os.remove(os.path.join(output_dir, file))
+    os.makedirs(output_dir, exist_ok=True)
     
     board = Board(
         tiles_json_path="data/tiles.json",
@@ -93,7 +95,7 @@ def main() -> None:
         players_json_path="data/players.json",
     )
     
-    play_game(board, max_turns=500, 
+    play_game(board, max_turns=1000, 
               output_prefix="tauler", output_dir=output_dir)
 
     # Generate slideshow HTML with the new SVGs

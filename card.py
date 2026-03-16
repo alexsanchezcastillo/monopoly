@@ -42,6 +42,8 @@ class MoneyCard(Card):
         self._amount = amount
         
     def execute(self, player: Player, board: Board) -> None:
+        if self._amount < 0:  # Payment to bank
+            player.set_creditor(None)
         player.transaction(self._amount)
 
 class MoveToPositionCard(Card):
@@ -85,6 +87,7 @@ class PropertyRepairsCard(Card):
         
     def execute(self, player: Player, board: Board) -> None:
         cost = (player.total_houses() * self._house_cost) + (player.total_hotels() * self._hotel_cost)
+        player.set_creditor(None)  # Payment to bank for repairs
         player.transaction(-cost)
 
 class PlayerTransactionCard(Card):
@@ -97,9 +100,11 @@ class PlayerTransactionCard(Card):
         for other in board.players():
             if other != player:
                 if self._action == "pay_each_player":
+                    player.set_creditor(None)  # Payment to multiple players = bank default
                     player.transaction(-self._amount_per_player)
                     other.transaction(self._amount_per_player)
                 else:
+                    other.set_creditor(None)  # Payment from multiple players = bank default
                     other.transaction(-self._amount_per_player)
                     player.transaction(self._amount_per_player)
 

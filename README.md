@@ -82,6 +82,30 @@ El sistema de presó segueix les regles simplificades:
 
 La compra i venda de cases segueix la regla de construcció uniforme: no es pot construir una casa addicional en un carrer si qualsevol altre carrer del mateix color té menys cases. Igualment, no es pot vendre una casa si qualsevol altre carrer del mateix color en té més.
 
+### Gestió de la fallida i transferència de propietats
+
+Quan un jugador es queda sense diners (fallida), el sistema utilitza un **sistema de creditor** per determinar qui hereta les seves propietats:
+
+- **Fallida contra un jugador** (lloguer, cartes de pagament entre jugadors): El jugador creditor hereta totes les propietats del fallit i les afegeix al seu patrimoni.
+- **Fallida contra la banca** (impostos, cartes de manteniment, pagaments col·lectius): Les propietats retornen a la banca (propietari `None`).
+
+**Implementació técnica:**
+
+Cada vegada que es fa un pagament, s'estableix el creditor mitjançant `player.set_creditor()`:
+
+- `Property.land_on()`: Creditor = propietari de la propietat.
+- `board.move_to_nearest()`: Creditor = propietari de l'estació/servei públic.
+- `Tax.land_on()`: Creditor = `None` (banca).
+- `MoneyCard.execute()` (pay_money): Creditor = `None` (banca).
+- `PropertyRepairsCard.execute()`: Creditor = `None` (banca).
+- `PlayerTransactionCard.execute()` (pagaments col·lectius): Creditor = `None` (banca).
+
+Aquesta decisió de disseny replica les regles oficials del Monopoly i assegura que les propietats no es perdin arbitràriament quan un jugador fa fallida.
+
+### Rent multiplier de les cartes de Chance
+
+Les cartes de Chance "Move to nearest station/utility" apliquen un multiplicador al lloguer (×2 per a estacions, ×10 per a serveis públics). La implementació estableix el creditor correctament perquè, si el jugador fa fallida, l'herència de propietats es gestioni segons les regles oficials.
+
 ## Instal·lació
 
 ### Requisits
@@ -103,7 +127,9 @@ pip install drawsvg
 python3 main.py
 ```
 
-Això juga una partida completa, genera fitxers SVG per a cada torn a la carpeta `games/` i crea un fitxer `game.html` per visualitzar la partida al navegador.
+La partida es juga de forma automàtica fins que només queda un jugador (o s'assoleix el límit de 500 torns). Els fitxers SVG es generen per a cada torn a la carpeta `games/` (format `tauler-0000.svg`, `tauler-0001.svg`, etc.), i es crea un fitxer `game.html` per visualitzar la partida al navegador web.
+
+**Nota:** Els SVGs sempre es generen de forma automàtica durant la partida, necessaris per a la visualització i anàlisi del joc.
 
 ### Executar els tests
 
@@ -140,8 +166,7 @@ programa/
 ├── slideshow.py                # Generador HTML de presentació
 ├── strategy.py                 # Estratègies dels jugadors automàtics
 ├── tile.py                     # Jerarquia de caselles
-├── test_board.py               # Tests del tauler
-├── test_board_coverage.py      # Tests addicionals del tauler
+├── test_board.py               # Tests del tauler (inclou cobertura amplia)
 ├── test_card_coverage.py       # Tests de les targetes
 ├── test_data_importation.py    # Test d'importació de dades
 ├── test_deck.py                # Tests de la pila de targetes
@@ -166,15 +191,14 @@ El projecte inclou un conjunt de tests organitzats per mòdul:
 
 | Fitxer de test | Què verifica |
 |---|---|
-| `test_board.py` | Inicialització del tauler, tirada de daus, serialització pickle, mecànica de torns amb dobles i presó |
-| `test_board_coverage.py` | Cobertura addicional: cicle de jugadors, tipus de caselles, operacions de propietats |
+| `test_board.py` | Inicialització del tauler, tirada de daus, serialització pickle, mecànica de torns amb dobles i presó, cicle de jugadors, tipus de caselles, operacions de propietats |
 | `test_card_coverage.py` | Construcció de targetes des de diccionaris, execució de cada tipus de targeta |
 | `test_deck.py` | Inicialització del deck, robada i devolució de targetes, barreja, mida |
-| `test_player.py` | Inicialització del jugador, moviment, pas per GO, transaccions i fallida |
-| `test_tile.py` | Compra de propietats, lloguer, construcció/venda de cases i hotels, hipoteques |
+| `test_player.py` | Inicialització del jugador, moviment, pas per GO, transaccions, fallida i gestió de creditor |
+| `test_tile.py` | Compra de propietats, lloguer, construcció/venda de cases i hotels, hipoteques, propietat mortgagada |
 | `test_strategy.py` | Estratègia base (NotImplementedError), SimpleStrategy amb diferents nivells de diners |
 | `test_draw.py` | Posicionament de caselles, mapa de colors, generació de fitxers SVG |
-| `test_main.py` | Funció `play_game` amb límit de torns, integració completa |
+| `test_main.py` | Funció `play_game` amb límit de torns, integració completa del joc |
 | `test_slideshow.py` | Generació HTML de la presentació |
 
 Per executar tots els tests:

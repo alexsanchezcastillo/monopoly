@@ -498,6 +498,7 @@ class Tax(Tile):
 
     def land_on(self, player: Player) -> None:
         """Deducts the tax amount from the player's money."""
+        player.set_creditor(None)  # Payment to bank
         player.transaction(-self._tax)
 
 class Community_Chest(Tile):
