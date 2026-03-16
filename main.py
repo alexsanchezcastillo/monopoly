@@ -2,19 +2,17 @@ from board import Board
 from draw import draw
 from slideshow import generate_slideshow
 import os
-import shutil
 from typing import Tuple
 
-def play_game(board: Board, max_turns: int = 500,
-              save_svg: bool = True, output_prefix: str = "tauler", 
+def play_game(board: Board, max_turns: int = 1000,
+              output_prefix: str = "tauler", 
               output_dir: str = "games") -> Tuple[int, str]:
     """
     Play a complete game of Monopoly.
     
     Args:
         board: The game board
-        max_turns: Maximum turns before stopping (default 500)
-        save_svg: Whether to save SVG files after each turn
+        max_turns: Maximum turns before stopping (default 1000)
         output_prefix: Prefix for SVG filenames
         output_dir: Directory to save SVG files to
     
@@ -22,9 +20,10 @@ def play_game(board: Board, max_turns: int = 500,
         Tuple of (turn_count, winner_name)
     """
     
+    os.makedirs(output_dir, exist_ok=True)
+
     # Save initial board state
-    if save_svg:
-        draw(board, os.path.join(output_dir, f"{output_prefix}-0000.svg"))
+    draw(board, os.path.join(output_dir, f"{output_prefix}-0000.svg"))
     
     turn_count = 0
     
@@ -34,25 +33,26 @@ def play_game(board: Board, max_turns: int = 500,
         turn_count += 1
         
         # Save board state after each turn
-        if save_svg:
-            svg_filename = f"{output_prefix}-{turn_count:04d}.svg"
-            draw(board, os.path.join(output_dir, svg_filename))
+        svg_file_name = f"{output_prefix}-{turn_count:04d}.svg"
+        draw(board, f"{output_dir}/{svg_file_name}")
         
         # Check for bankrupt players
         bankrupt_players = [p for p in board.players() if p.broke()]
         for player in bankrupt_players:
-            print(f"\n*** {player.name()} has gone BANKRUPT! ***\n")
-            # Return all properties to the bank (unowned)
-            for prop in list(player.owned_properties()):
-                prop.set_owner(None)
+            creditor = player.creditor()
+            if creditor is not None:
+                # Bankrupt due to another player: all properties go to the creditor
+                print(f"\n*** {player.name()} has gone BANKRUPT to {creditor.name()}! ***\n")
+                for prop in list(player.owned_properties()):
+                    prop.set_owner(creditor)
+                    creditor.owned_properties().add(prop)
+            else:
+                # Bankrupt due to the bank: properties return to the bank
+                print(f"\n*** {player.name()} has gone BANKRUPT to the bank! ***\n")
+                for prop in list(player.owned_properties()):
+                    prop.set_owner(None)
             player.owned_properties().clear()
-            player_idx = board._list_players.index(player)
-            board._list_players.remove(player)
-            # Adjust current player index if needed
-            if player_idx < board._current_player_index:
-                board._current_player_index -= 1
-            if board._current_player_index >= len(board._list_players) and len(board._list_players) > 0:
-                board._current_player_index = 0
+            board.remove_player(player)
         
         # Check turn limit
         if turn_count >= max_turns:
@@ -93,7 +93,7 @@ def main() -> None:
         players_json_path="data/players.json",
     )
     
-    play_game(board, max_turns=500, save_svg=True, 
+    play_game(board, max_turns=500, 
               output_prefix="tauler", output_dir=output_dir)
 
     # Generate slideshow HTML with the new SVGs

@@ -101,10 +101,12 @@ class Property(Tile):
 
         if self._owner is not None and self._owner != player:
             rent_amount = self.get_rent()
+            player.set_creditor(self._owner)
             player.transaction(-rent_amount)
             self._owner.transaction(rent_amount)
 
         elif self._owner is None:
+            player.set_creditor(None)
             # We ask the player (who asks their strategy) if they want to buy
             if player.decide_buy(self):   
                 player.transaction(-self._price) 
@@ -164,7 +166,7 @@ class Property(Tile):
             return True
         return False
     
-    def set_owner(self, player: Player) -> None:
+    def set_owner(self, player: Player|None) -> None:
         """Sets the owner of the property."""
         self._owner = player
 
@@ -264,7 +266,7 @@ class Street(Property):
         if self._owner is None:
             return False
             
-        # 1. Limit of 4 houses (the 5th is a hotel)
+        # 1. Limit of 4 houses
         if self._num_houses >= 4:
             return False
         

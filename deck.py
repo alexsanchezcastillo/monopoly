@@ -3,14 +3,14 @@ import random
 from card import Card, build_card
 
 class Deck:
-    """Represents a deck of cards loaded from a JSON configuration file."""
+    """Represents a deck of cards."""
 
     _cards: list[Card]
 
     def __init__(self, path: str) -> None:
         """
         Initializes the deck by reading card data from a JSON file 
-        and building Card objects using the factory function.
+        and building Card objects.
         """
         with open(path) as file:
             data = json.load(file)
@@ -23,12 +23,7 @@ class Deck:
     def draw(self) -> Card:
         """
         Removes and returns the top card from the deck.
-        
-        Raises:
-            IndexError: If attempting to draw from an empty deck.
         """
-        if not self._cards:
-            raise IndexError("Cannot draw from an empty deck.")
         return self._cards.pop(0)
 
     def add_card(self, card: Card) -> None:

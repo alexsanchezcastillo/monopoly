@@ -18,13 +18,13 @@ class TestMainGameFunction:
 
     def test_play_game_returns_tuple(self, board: Board) -> None:
         """Test that play_game returns a tuple."""
-        result = play_game(board, max_turns=50, save_svg=False)
+        result = play_game(board, max_turns=50)
         assert isinstance(result, tuple)
         assert len(result) == 2
 
     def test_play_game_returns_turn_count_and_winner(self, board: Board) -> None:
         """Test that play_game returns valid tuple."""
-        turn_count, winner = play_game(board, max_turns=50, save_svg=False)
+        turn_count, winner = play_game(board, max_turns=50)
         assert isinstance(turn_count, int)
         assert isinstance(winner, str)
         assert turn_count >= 1
@@ -32,22 +32,20 @@ class TestMainGameFunction:
     def test_play_game_with_limit(self, board: Board) -> None:
         """Test that game respects turn limits."""
         max_turns = 100
-        turn_count, winner = play_game(board, max_turns=max_turns, 
-                                       save_svg=False)
+        turn_count, winner = play_game(board, max_turns=max_turns)
         # Turn count should be within limit (with minor tolerance)
         assert turn_count <= max_turns
 
     def test_play_game_without_svg(self, board: Board) -> None:
         """Test that game plays correctly without saving SVG files."""
-        turn_count, winner = play_game(board, max_turns=50, 
-                                       save_svg=False)
+        turn_count, winner = play_game(board, max_turns=50)
         assert turn_count >= 1
         assert winner is not None
 
     def test_play_game_reduces_player_count(self, board: Board) -> None:
         """Test that game reduces players as they go bankrupt."""
         initial_players = len(board.players())
-        play_game(board, max_turns=100, save_svg=False)
+        play_game(board, max_turns=100)
         final_players = len(board.players())
         
         # Game play reduces players
@@ -62,8 +60,7 @@ class TestGameIntegration:
         board = Board("data/tiles.json", "data/chance.json",
                      "data/community-chest.json", "data/players.json")
         
-        turn_count, winner = play_game(board, max_turns=100, 
-                                      save_svg=False)
+        turn_count, winner = play_game(board, max_turns=100)
         
         # Game should complete
         assert turn_count > 0
@@ -74,8 +71,7 @@ class TestGameIntegration:
         board = Board("data/tiles.json", "data/chance.json",
                      "data/community-chest.json", "data/players.json")
         
-        turn_count, winner = play_game(board, max_turns=200, 
-                                      save_svg=False)
+        turn_count, winner = play_game(board, max_turns=200)
         
         # Should have played at least some turns
         assert turn_count >= 1

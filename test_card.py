@@ -4,7 +4,6 @@ Additional test suite for Card classes to improve coverage.
 
 import pytest
 from board import Board
-from player import Player
 from card import build_card
 
 
@@ -50,14 +49,14 @@ class TestCardFactory:
     def test_build_property_repairs_card(self) -> None:
         """Test building a property repairs card."""
         data = {"id": 6, "title": "Repairs", "description": "Pay for repairs",
-                "action": "pay_per_property", "house_cost": 25, "hotel_cost": 100}
+                "action": "pay_per_property", "amountPerHouse": 25, "amountPerHotel": 100}
         card = build_card(data)
         assert card.title() == "Repairs"
 
     def test_build_nearest_station_card(self) -> None:
         """Test building a move to nearest station card."""
         data = {"id": 7, "title": "Station", "description": "Nearest Station",
-                "action": "move_to_nearest_station", "multiplier": 0}
+                "action": "move_to_nearest_station", "rentMultiplier": 2}
         card = build_card(data)
         assert card.title() == "Station"
 

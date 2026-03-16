@@ -24,6 +24,7 @@ class Player:
     _jail_turns: int
     _owned_properties: set[Property]
     _get_out_of_jail_cards: int
+    _creditor: Player | None
     
 
     def __init__(
@@ -51,6 +52,7 @@ class Player:
         self._owned_properties = set()
         self._strategy: PlayerStrategy = SimpleStrategy()
         self._get_out_of_jail_cards = 0
+        self._creditor: Player | None = None
     
     def decide_buy(self, property_tile: Property) -> bool:
         """
@@ -193,6 +195,14 @@ class Player:
 
     def owned_properties(self) -> set[Property]:
         return self._owned_properties
+
+    def creditor(self) -> Player | None:
+        """Returns the player who this player (self) has to pay, or None if is the bank."""
+        return self._creditor
+
+    def set_creditor(self, player: Player | None) -> None:
+        """Sets the creditor (the player this player owes rent to)."""
+        self._creditor = player
     
     def transaction(self, amount: int) -> None:
         """Adjusts the player's balance by the given amount (positive or negative)."""

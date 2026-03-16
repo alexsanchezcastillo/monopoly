@@ -1,5 +1,3 @@
-# drawsvg.pyi: type hints for drawsvg
-
 from typing import Any, Optional
 
 class Drawing:
@@ -52,5 +50,3 @@ class Group(DrawingElement):
     def __init__(self, **kwargs: Any) -> None: ...
     def append(self, element: DrawingElement) -> None: ...
     def draw(self, obj: DrawingElement, **kwargs: Any) -> None: ...
-
-# Add other elements as you need them

@@ -9,24 +9,30 @@ class Card:
     """Base class for all Monopoly cards."""
 
     def __init__(self, id: int, title: str, description: str, action: str) -> None:
+        """Initializes a card with its basic attributes: id, title, description and action."""
         self._id = id
         self._title = title
         self._description = description
         self._action = action
 
     def id(self) -> int:
+        """Returns the unique identifier of the card."""
         return self._id
         
     def title(self) -> str:
+        """Returns the title of the card."""
         return self._title
         
     def description(self) -> str:
+        """Returns the description of the card."""
         return self._description
         
     def action(self) -> str:
+        """Returns the action type of the card, which determines its effect when drawn."""
         return self._action
 
     def execute(self, player: Player, board: Board) -> None:
+        """"""
         raise NotImplementedError("Subclasses must implement execute().")
 
 class MoneyCard(Card):
@@ -111,25 +117,25 @@ class MoveNearestCard(Card):
 
 def build_card(data: dict[str, Any]) -> Card:
     """Factory to build cards from JSON data."""
-    c_id, title, desc, action = data.get("id", 0), data.get("title", ""), data.get("description", ""), data.get("action", "")
+    c_id, title, desc, action = data["id"], data["title"], data["description"], data["action"]
 
     if action == "collect_money":
-        return MoneyCard(c_id, title, desc, action, data.get("amount", 0))
+        return MoneyCard(c_id, title, desc, action, data["amount"])
     elif action == "pay_money":
-        return MoneyCard(c_id, title, desc, action, -data.get("amount", 0))
+        return MoneyCard(c_id, title, desc, action, -data["amount"])
     elif action == "move_to_position":
-        return MoveToPositionCard(c_id, title, desc, action, data.get("position", 0))
+        return MoveToPositionCard(c_id, title, desc, action, data["position"])
     elif action == "move_back_spaces":
-        return MoveBackSpacesCard(c_id, title, desc, action, data.get("spaces", 0))
+        return MoveBackSpacesCard(c_id, title, desc, action, data["spaces"])
     elif action == "go_to_jail":
-        return GoToJailCard(c_id, title, desc, action, data.get("position", 10))
+        return GoToJailCard(c_id, title, desc, action, data["position"])
     elif action == "get_out_of_jail_card":
         return GetOutOfJailCard(c_id, title, desc, action)
     elif action == "pay_per_property":
-        return PropertyRepairsCard(c_id, title, desc, action, data.get("amountPerHouse", 0), data.get("amountPerHotel", 0))
+        return PropertyRepairsCard(c_id, title, desc, action, data["amountPerHouse"], data["amountPerHotel"])
     elif action in ["pay_each_player", "collect_from_players"]:
-        return PlayerTransactionCard(c_id, title, desc, action, data.get("amountPerPlayer", 0))
+        return PlayerTransactionCard(c_id, title, desc, action, data["amountPerPlayer"])
     elif "nearest" in action:
-        return MoveNearestCard(c_id, title, desc, action, data.get("rentMultiplier", 1))
+        return MoveNearestCard(c_id, title, desc, action, data["rentMultiplier"])
     
     return Card(c_id, title, desc, action)

@@ -2,6 +2,7 @@ import pytest
 from typing import Any
 from board import Board, save_board, load_board
 from tile import Tile, Property
+from player import Player
 
 def create_test_board() -> Board:
     """
@@ -150,3 +151,77 @@ def test_play_turn_three_doubles_jail() -> None:
     
     # The turn must pass immediately
     assert board.current_player() != player
+
+
+def test_current_player_changes_after_next() -> None:
+    """Tests that current player changes after calling next_player."""
+    board = create_test_board()
+    first_player = board.current_player()
+    board.next_player()
+    second_player = board.current_player()
+    assert first_player.index() != second_player.index()
+
+
+def test_next_player_cycles_through_all() -> None:
+    """Tests that calling next_player cycles back to the original player."""
+    board = create_test_board()
+    num_players = len(board.players())
+    original_player = board.current_player()
+    for _ in range(num_players):
+        board.next_player()
+    assert board.current_player().index() == original_player.index()
+
+
+def test_all_tiles_are_accessible() -> None:
+    """Tests that all 40 board tiles are accessible."""
+    board = create_test_board()
+    for pos in range(40):
+        tile = board.get_tile(pos)
+        assert tile is not None
+        assert 0 <= tile.position() <= 39
+
+
+def test_has_monopoly_without_properties() -> None:
+    """Tests monopoly check when the player owns nothing."""
+    board = create_test_board()
+    player = board.players()[0]
+    assert board.has_monopoly(player, "brown") is False
+
+
+def test_players_list_valid() -> None:
+    """Tests that board maintains a valid player list."""
+    board = create_test_board()
+    players = board.players()
+    assert 2 <= len(players) <= 4
+    for player in players:
+        assert isinstance(player, Player)
+
+
+def test_board_has_all_tile_types() -> None:
+    """Tests that the board includes all expected tile types."""
+    board = create_test_board()
+    tile_types = {tile.type() for tile in board.tiles()}
+    expected_types = {"property", "station", "utility", "tax", "special", "chance", "community_chest"}
+    for expected in expected_types:
+        assert expected in tile_types
+
+
+def test_station_count() -> None:
+    """Tests that there are exactly 4 stations on the board."""
+    board = create_test_board()
+    stations = [t for t in board.tiles() if t.type() == "station"]
+    assert len(stations) == 4
+
+
+def test_utility_count() -> None:
+    """Tests that there are exactly 2 utilities on the board."""
+    board = create_test_board()
+    utilities = [t for t in board.tiles() if t.type() == "utility"]
+    assert len(utilities) == 2
+
+
+def test_tax_count() -> None:
+    """Tests that there are exactly 2 tax tiles on the board."""
+    board = create_test_board()
+    taxes = [t for t in board.tiles() if t.type() == "tax"]
+    assert len(taxes) == 2

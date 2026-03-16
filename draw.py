@@ -561,7 +561,7 @@ def draw_players_center(d: dw.Drawing, board: Board, show_number: bool = False) 
 
 
 def draw(board: Board, svg_path: str, show_number: bool = False) -> None:
-    """Draw the Monopoly game to board.svg: board with padding, players in four center quadrants."""
+    """Draw the Monopoly game."""
     total_size = BOARD_SIZE + 2 * IMAGE_PADDING
     d = dw.Drawing(total_size, total_size, id_prefix="board")
     # Group shifts content so the board has padding on all sides

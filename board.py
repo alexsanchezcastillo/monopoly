@@ -9,9 +9,7 @@ from deck import Deck
 
 class Board:
     """Represents the complete Monopoly game board, including tiles, card decks, and players.
-    
-    Manages all game logic: dice rolling, turn progression, jail handling,
-    building phases, and win/loss conditions.
+    Manages all game logic: dice rolling, turns, jail mechanics...
     """
     _tiles_path: str
     _chance_path: str
@@ -21,8 +19,8 @@ class Board:
     _list_chance: Deck
     _list_community_chest: Deck
     _list_players: list[Player]
-    _current_dice: tuple[int, int]   # important information in every stage of the game, it is actualized in every dice 
-    _current_player_index: int       # important information in every stage of the game, it is actualized in every turn
+    _current_dice: tuple[int, int]
+    _current_player_index: int
     
     def __init__(
         self,
@@ -84,14 +82,14 @@ class Board:
         """
         player = self.current_player()
         
-        # Handle jail entry/exit first
+        # Handle jail first
         if player.is_in_jail():
-            print(f"[JAIL] {player.name()} is in jail (turn {player.turns_in_prison()}/3).")
+            print(f"{player.name()} is in jail (turn {player.turns_in_prison()}/3).")
             
             # Try to exit jail using a card
             if player.get_out_of_jail_cards() > 0:
                 if player.use_get_out_of_jail_card():
-                    print(f"[JAIL] {player.name()} used a Get Out of Jail Free card!")
+                    print(f"{player.name()} used a Get Out of Jail Free card!")
             
             # If still in jail, try to roll doubles or serve time
             if player.is_in_jail():
@@ -99,25 +97,25 @@ class Board:
                 d1, d2 = self.roll_dice()
                 is_double = (d1 == d2)
                 
-                print(f"[JAIL] {player.name()} rolls {d1} and {d2}.")
+                print(f"{player.name()} rolls {d1} and {d2}.")
                 
                 if is_double:
                     # Exit jail with doubles
                     player.exit_jail()
-                    print(f"[JAIL] {player.name()} rolled doubles! Exiting jail.")
+                    print(f"{player.name()} rolled doubles! Exiting jail.")
                     # Continue with normal movement
                     steps = d1 + d2
                     player.move(steps)
-                    print(f"       {player.name()} lands on tile {player.position()}.")
+                    print(f"{player.name()} lands on tile {player.position()}.")
                     tile = self.get_tile(player.position())
                     tile.land_on(player)
                 elif player.turns_in_prison() >= 3:
                     # Auto-exit after 3 turns
                     player.exit_jail()
-                    print(f"[JAIL] {player.name()} completed 3 jail turns. Released.")
+                    print(f"{player.name()} completed 3 jail turns. Released.")
                     # Do NOT roll or move - just pass turn
                 else:
-                    print(f"[JAIL] {player.name()} stays in jail.")
+                    print(f"{player.name()} stays in jail.")
                 
                 self.next_player()
                 return
@@ -130,20 +128,20 @@ class Board:
             steps = d1 + d2
             is_double = (d1 == d2)
             
-            print(f"[TURN] {player.name()} rolls {d1} and {d2} (Total: {steps}).")
+            print(f"{player.name()} rolls {d1} and {d2} (Total: {steps}).")
             
             if is_double:
                 doubles_count += 1
-                print(f"       Double roll! ({doubles_count}/3)")
+                print(f"Double roll! ({doubles_count}/3)")
                 
                 if doubles_count == 3:
-                    print(f"       3 consecutive doubles! {player.name()} goes directly to jail.")
+                    print(f"3 consecutive doubles! {player.name()} goes to jail.")
                     player.go_to_jail(self.jail_position())
                     break  # Turn ends immediately
             
             # Normal movement
             player.move(steps)
-            print(f"       {player.name()} lands on tile {player.position()}.")
+            print(f"{player.name()} lands on tile {player.position()}.")
             
             # Execute tile action
             tile = self.get_tile(player.position())
@@ -159,6 +157,15 @@ class Board:
 
         # Always pass the turn to the next player at the end
         self.next_player()
+
+    def remove_player(self, player: Player) -> None:
+        """Removes a bankrupt player from the game and adjusts the turn index."""
+        player_idx = self._list_players.index(player)
+        self._list_players.remove(player)
+        if player_idx < self._current_player_index:
+            self._current_player_index -= 1
+        if self._current_player_index >= len(self._list_players) and len(self._list_players) > 0:
+            self._current_player_index = 0
 
     def players(self) -> list[Player]:
         """Returns a list with all the players."""
@@ -180,18 +187,23 @@ class Board:
         return self._current_dice
 
     def num_tiles(self) -> int:
+        """Returns the total number of tiles on the board."""
         return len(self._list_tiles)
 
     def jail_position(self) -> int:
+        """Returns the index of the Jail tile."""
         return 10
 
     def current_dice(self) -> tuple[int, int]:
+       """Returns the most recent dice roll result."""
        return self._current_dice
     
     def get_tile(self, index: int) -> Tile:
+        """Returns the tile at the specified index."""
         return self._list_tiles[index % self.num_tiles()]
     
     def get_property(self, index: int) -> Property:
+        """Returns the property tile at the specified index, or raises an error if it's not a property."""
         tile = self.tiles()[index]
         if isinstance(tile, Property):
             return tile
@@ -201,63 +213,67 @@ class Board:
     def move_to_nearest_station(self, player: Player, multiplier: int = 1) -> None:
         """
         Moves the player to the nearest station ahead of them.
-        Stations are typically at positions 5, 15, 25, and 35.
         """
-        # Define station positions
+        # Station positions
         stations = [5, 15, 25, 35]
         self.move_to_nearest(player, stations, multiplier)
 
     def move_to_nearest_utility(self, player: Player, multiplier: int = 1) -> None:
         """
-        Moves the player to the nearest utility (Electric Company or Water Works).
+        Moves the player to the nearest utility.
         """
-        # Define utility positions
+        # Utility positions
         utilities = [12, 28]
         self.move_to_nearest(player, utilities, multiplier)
 
     def move_to_nearest(self, player: Player, targets: list[int], multiplier: int) -> None:
-        """
-        Helper method to find the next target position and move the player.
-        If no target is ahead, it wraps around to the first target of the next lap.
-        """
+        """Finds the next target position, moves the player, and handles
+        the rent with the given multiplier (from Chance card rules).
+        If unowned, the player may buy it. If owned, rent is multiplied."""
         current_pos = player.position()
         
-        # Find the first target position that is greater than current position
-        # If the list is empty (all targets are behind), take the first one (lap wrap)
-        next_target = next((pos for pos in targets if pos > current_pos), targets[0])
+        next_target = None
+        for pos in targets:
+            if pos > current_pos:
+                next_target = pos
+                break
+        if next_target is None:
+            next_target = targets[0]
         
-        # Execute the move
         player.move_to(next_target)
         
-        # Note: The multiplier logic (e.g., pay 10x dice roll) should be handled 
-        # by the Square's landing logic or a flag in the Player's state.
+        tile = self.get_tile(next_target)
+        if not isinstance(tile, Property):
+            return
+        
+        if tile.is_mortgaged():
+            return
+        
+        owner = tile.get_owner()
+        if owner is None:
+            # Unowned: offer purchase as normal
+            if player.decide_buy(tile):
+                player.transaction(-tile.price())
+                tile.set_owner(player)
+                player.owned_properties().add(tile)
+        elif owner != player:
+            # Owned by another player: pay rent × multiplier
+            rent = tile.get_rent() * multiplier
+            player.set_creditor(owner)
+            player.transaction(-rent)
+            owner.transaction(rent)
         
     def get_color_group(self, color: str) -> list[Property]:
         """Returns a list of all streets of a specific color group."""
         return [tile for tile in self._list_tiles 
                 if isinstance(tile, Street) and tile.color() == color]
-
-    def play(self) -> None:
-        """Executes the game loop until only one player remains solvent."""
-        while len(self._list_players) > 1:
-            self.play_turn()
-            
-            # Check if any player went broke after the turn
-            bankrupt_players = [p for p in self._list_players if p.broke()]
-            for player in bankrupt_players:
-                print(f"\n*** {player.name()} has gone BANKRUPT! ***\n")
-                self._list_players.remove(player)
-        
-        # Game ends when only one player remains
-        if len(self._list_players) == 1:
-            winner = self._list_players[0]
-            print(f"\n*** {winner.name()} WINS THE GAME! ***")
-            print(f"*** Final wealth: M{winner.money()} ***\n")
     
     def chance_deck(self) -> Deck:
+        """Returns the Chance card deck."""
         return self._chance_deck
     
     def community_chest_deck(self) -> Deck:
+        """Returns the Community Chest card deck."""
         return self._community_chest_deck
     
     def has_monopoly(self, player: Player, color: str) -> bool:
