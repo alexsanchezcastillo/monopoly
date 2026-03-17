@@ -1,5 +1,5 @@
 import pytest
-from strategy import PlayerStrategy, SimpleStrategy
+from strategy import Strategy
 from player import Player
 from tile import Street
 from board import Board
@@ -18,29 +18,9 @@ def create_test_board() -> Board:
     )
 
 
-def test_base_strategy_raises_error() -> None:
-    """Tests that the base class cannot be used directly without implementation."""
-    strategy = PlayerStrategy()
-    board = create_test_board()  
-    player = Player(board=board, name="TestPlayer", piece="Car", color="red", index=1)    
-    
-    # We create a real property tile to test the strategy
-    street = Street(
-        board=board, description="Test Street", position=1, name="Fake Street", 
-        tile_type="property", color="blue", price=200, rent=50, 
-        rent_with_color_set=100, rent_with_1_house=200, rent_with_2_houses=600, 
-        rent_with_3_houses=1400, rent_with_4_houses=1700, rent_with_hotel=2000, 
-        house_cost=50, hotel_cost=50, mortgage=100
-    )
-
-    # It should raise a NotImplementedError when calling the base method
-    with pytest.raises(NotImplementedError):
-        strategy.buy_property(player, street)
-
-
-def test_simple_strategy_buys_with_enough_money() -> None:
-    """Tests that SimpleStrategy decides to buy when the player has enough money."""
-    strategy = SimpleStrategy()
+def test_strategy_buys_with_enough_money() -> None:
+    """Tests that Strategy decides to buy when the player has enough money."""
+    strategy = Strategy()
     board = create_test_board()  
     
     street = Street(
@@ -60,9 +40,9 @@ def test_simple_strategy_buys_with_enough_money() -> None:
     assert strategy.buy_property(exact_player, street) is True
 
 
-def test_simple_strategy_declines_without_money() -> None:
-    """Tests that SimpleStrategy decides NOT to buy when funds are insufficient."""
-    strategy = SimpleStrategy()
+def test_strategy_declines_without_money() -> None:
+    """Tests that Strategy decides NOT to buy when funds are insufficient."""
+    strategy = Strategy()
     board = create_test_board()  
     
     street = Street(

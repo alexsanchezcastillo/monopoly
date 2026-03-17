@@ -58,8 +58,7 @@ class Tile:
         return self._board    
     
     def get_owner(self) -> Player | None:
-        """Returns the owner of the tile if it has one, otherwise returns None.
-        This method is overridden in property tiles to return the actual owner."""
+        """Returns the owner of the tile if it has one, otherwise returns None."""
         return None
 
 class Property(Tile):
@@ -82,8 +81,9 @@ class Property(Tile):
         price: int,
         mortgage: int,
     ):
-        """Initializes a Property object with a price and mortgage value, in addition to the standard Tile attributes."""
-        super().__init__(board, position, name, tile_type, description)  # to use the father __init__'s declaration of variables
+        """Initializes a Property object with a price and mortgage value,
+        in addition to the standard Tile attributes."""
+        super().__init__(board, position, name, tile_type, description)
         self._price = price
         self._mortgage = mortgage
         self._owner = None

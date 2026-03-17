@@ -87,7 +87,7 @@ class Board:
             print(f"{player.name()} is in jail (turn {player.turns_in_prison()}/3).")
             
             # Try to exit jail using a card
-            if player.get_out_of_jail_cards() > 0:
+            if player.get_out_of_jail_free_cards() > 0:
                 if player.use_get_out_of_jail_card():
                     print(f"{player.name()} used a Get Out of Jail Free card!")
             

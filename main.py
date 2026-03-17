@@ -20,7 +20,8 @@ def play_game(board: Board, max_turns: int = 1000,
         Tuple of (turn_count, winner_name)
     """
     
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)  # Create output_dir if missing; ignore if it already exists.
+
 
     # Clean up any old SVG files from previous games with this prefix
     for file in os.listdir(output_dir):
@@ -84,9 +85,6 @@ def play_game(board: Board, max_turns: int = 1000,
 def main() -> None:
     """Main entry point for the game."""
     output_dir = "games"
-    
-    # Create output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
     
     board = Board(
         tiles_json_path="data/tiles.json",

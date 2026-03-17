@@ -12,7 +12,7 @@ class TestCardFactory:
 
     def test_build_money_card_collect(self) -> None:
         """Test building a collect money card."""
-        data = {"id": 1, "title": "Collect", "description": "Collect £100", 
+        data: dict[str, int|str] = {"id": 1, "title": "Collect", "description": "Collect £100", 
                 "action": "collect_money", "amount": 100}
         card = build_card(data)
         assert card.title() == "Collect"
@@ -20,42 +20,42 @@ class TestCardFactory:
 
     def test_build_money_card_pay(self) -> None:
         """Test building a pay money card."""
-        data = {"id": 2, "title": "Pay", "description": "Pay £50", 
+        data: dict[str, int|str] = {"id": 2, "title": "Pay", "description": "Pay £50", 
                 "action": "pay_money", "amount": 50}
         card = build_card(data)
         assert card.title() == "Pay"
 
     def test_build_move_to_position_card(self) -> None:
         """Test building a move to position card."""
-        data = {"id": 3, "title": "Move to GO", "description": "Advance to GO", 
+        data: dict[str, int|str] = {"id": 3, "title": "Move to GO", "description": "Advance to GO", 
                 "action": "move_to_position", "position": 0}
         card = build_card(data)
         assert card.title() == "Move to GO"
 
     def test_build_go_to_jail_card(self) -> None:
         """Test building a go to jail card."""
-        data = {"id": 4, "title": "Go to Jail", "description": "Go directly to Jail", 
+        data: dict[str, int|str] = {"id": 4, "title": "Go to Jail", "description": "Go directly to Jail", 
                 "action": "go_to_jail", "position": 10}
         card = build_card(data)
         assert card.title() == "Go to Jail"
 
     def test_build_get_out_of_jail_card(self) -> None:
         """Test building a get out of jail card."""
-        data = {"id": 5, "title": "Get Out of Jail", "description": "Get Out of Jail Free", 
+        data: dict[str, int|str] = {"id": 5, "title": "Get Out of Jail", "description": "Get Out of Jail Free", 
                 "action": "get_out_of_jail_card"}
         card = build_card(data)
         assert card.title() == "Get Out of Jail"
 
     def test_build_property_repairs_card(self) -> None:
         """Test building a property repairs card."""
-        data = {"id": 6, "title": "Repairs", "description": "Pay for repairs",
+        data: dict[str, int|str] = {"id": 6, "title": "Repairs", "description": "Pay for repairs",
                 "action": "pay_per_property", "amountPerHouse": 25, "amountPerHotel": 100}
         card = build_card(data)
         assert card.title() == "Repairs"
 
     def test_build_nearest_station_card(self) -> None:
         """Test building a move to nearest station card."""
-        data = {"id": 7, "title": "Station", "description": "Nearest Station",
+        data: dict[str, int|str] = {"id": 7, "title": "Station", "description": "Nearest Station",
                 "action": "move_to_nearest_station", "rentMultiplier": 2}
         card = build_card(data)
         assert card.title() == "Station"
@@ -75,7 +75,7 @@ class TestCardExecution:
         player = board.players()[0]
         initial_money = player.money()
         
-        data = {"id": 1, "title": "Collect", "description": "Collect £100",
+        data: dict[str, int|str] = {"id": 1, "title": "Collect", "description": "Collect £100",
                 "action": "collect_money", "amount": 100}
         card = build_card(data)
         card.execute(player, board)
@@ -87,7 +87,7 @@ class TestCardExecution:
         player = board.players()[0]
         initial_money = player.money()
         
-        data = {"id": 2, "title": "Pay", "description": "Pay £50",
+        data: dict[str, int|str] = {"id": 2, "title": "Pay", "description": "Pay £50",
                 "action": "pay_money", "amount": 50}
         card = build_card(data)
         card.execute(player, board)
@@ -98,7 +98,7 @@ class TestCardExecution:
         """Test that move card executes."""
         player = board.players()[0]
         
-        data = {"id": 3, "title": "Move", "description": "Move to position 10",
+        data: dict[str, int|str] = {"id": 3, "title": "Move", "description": "Move to position 10",
                 "action": "move_to_position", "position": 10}
         card = build_card(data)
         card.execute(player, board)
@@ -109,7 +109,7 @@ class TestCardExecution:
         """Test that jail card executes."""
         player = board.players()[0]
         
-        data = {"id": 4, "title": "Jail", "description": "Go to Jail",
+        data: dict[str, int|str] = {"id": 4, "title": "Jail", "description": "Go to Jail",
                 "action": "go_to_jail", "position": 10}
         card = build_card(data)
         card.execute(player, board)
@@ -122,7 +122,7 @@ class TestCardIntegration:
 
     def test_cards_can_be_built_from_dict(self) -> None:
         """Test that cards can be built from dictionary data."""
-        test_data = [
+        test_data: list[dict[str, str|int]]  = [
             {"id": 1, "title": "Test", "description": "Test", "action": "collect_money", "amount": 50},
             {"id": 2, "title": "Test", "description": "Test", "action": "move_to_position", "position": 20},
         ]

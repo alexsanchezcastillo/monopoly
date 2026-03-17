@@ -1,32 +1,12 @@
 from typing import TYPE_CHECKING
+from tile import Street
 
 if TYPE_CHECKING:
     from player import Player
     from tile import Property
     from board import Board
 
-class PlayerStrategy:
-    """
-    Base class defining the decision-making of a player.
-    Acts as an interface that other strategies will inherit from.
-    """
-
-    def buy_property(self, player: Player, property_tile: Property) -> bool:
-        """
-        Evaluates if the player should buy the given property.
-        This method must be overridden by subclasses.
-        """
-        raise NotImplementedError("Subclasses must implement the buy_property method.")
-
-    def build(self, player: Player, board: Board) -> None:
-        """
-        Decides whether to build houses/hotels on owned properties.
-        Called at the end of each turn.
-        """
-        pass
-
-
-class SimpleStrategy(PlayerStrategy):
+class Strategy:
     """
     A basic strategy that always buys a property if the player has enough money,
     and builds houses/hotels when possible.
@@ -44,8 +24,7 @@ class SimpleStrategy(PlayerStrategy):
         Builds one house or hotel per turn on streets where the player has a monopoly.
         Only one build action per turn to make progression visible.
         """
-        from tile import Street
-
+        # Prioritize streets with fewer houses to build more evenly.
         streets = sorted(
             [p for p in player.owned_properties() if isinstance(p, Street)],
             key=lambda s: s.num_houses()

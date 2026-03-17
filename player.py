@@ -1,9 +1,8 @@
 from __future__ import annotations
-from const import START_MONEY
+from const import START_MONEY, GO_SALARY
 from typing import TYPE_CHECKING, Any
 from tile import Property, Street
-import const
-from strategy import PlayerStrategy, SimpleStrategy
+from strategy import Strategy
 
 
 if TYPE_CHECKING:
@@ -50,7 +49,7 @@ class Player:
         self._is_in_jail = False
         self._jail_turns = 0
         self._owned_properties = set()
-        self._strategy: PlayerStrategy = SimpleStrategy()
+        self._strategy: Strategy = Strategy()
         self._get_out_of_jail_cards = 0
         self._creditor: Player | None = None
     
@@ -60,13 +59,9 @@ class Player:
         """
         return self._strategy.buy_property(self, property_tile)
     
-    def strategy(self) -> PlayerStrategy:
+    def strategy(self) -> Strategy:
         """Returns the player's current strategy."""
         return self._strategy
-
-    # def set_strategy(self, strategy: PlayerStrategy) -> None:
-    #     """Changes the decision-making behavior of the player."""
-    #     self._strategy = strategy
 
     def move(self, steps: int) -> None:
         """
@@ -79,13 +74,13 @@ class Player:
         old_position = self._position
         total_tiles = self._board.num_tiles()
         
-        # Update position wrapping around the board
+        # Update position wrapping around the board (modular arithmetic)
         self._position = (self._position + steps) % total_tiles
         
-        # Check if the player passed GO (new position wrapped around)
+        # Check if the player passed GO 
         if self._position < old_position:
-            self._money += const.GO_SALARY
-            print(f"{self._name} passed GO and collected {const.GO_SALARY}!")
+            self._money += GO_SALARY
+            print(f"{self._name} passed GO and collected {GO_SALARY}!")
 
     def move_to(self, position: int) -> None:
         """
@@ -103,8 +98,8 @@ class Player:
         
         # Check if the player passed GO
         if self._position < old_position:
-            self._money += const.GO_SALARY
-            print(f"{self._name} passed GO and collected {const.GO_SALARY}!")
+            self._money += GO_SALARY
+            print(f"{self._name} passed GO and collected {GO_SALARY}!")
 
     def get_color_group_player(self, color: str) -> list[Street]:
         """Returns a list of all streets of a specific color owned by the player."""
@@ -165,12 +160,9 @@ class Player:
         """Increments the jail turn counter."""
         if self._is_in_jail:
             self._jail_turns += 1
-
-    def get_out_of_jail_cards(self) -> int:
-        return self._get_out_of_jail_cards
     
     def get_out_of_jail_free_cards(self) -> int:
-        """Alias for get_out_of_jail_cards() for compatibility."""
+        """Returns the number of Get Out of Jail Free cards the player has."""
         return self._get_out_of_jail_cards
     
     def add_get_out_of_jail_card(self) -> None:

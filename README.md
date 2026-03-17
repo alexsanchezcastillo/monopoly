@@ -28,7 +28,7 @@ El projecte s'organitza en els mòduls següents:
 | `deck.py` | Classe `Deck` per gestionar les piles de targetes amb barreja i robada |
 | `player.py` | Classe `Player` amb estat del joc (posició, diners, propietats, presó) |
 | `board.py` | Classe `Board` que gestiona tota la partida, daus, torns i regles |
-| `strategy.py` | Patró estratègia: `PlayerStrategy` (base) i `SimpleStrategy` |
+| `strategy.py` | Classe `Strategy` que defineix les decisions del jugador |
 | `draw.py` | Renderització del tauler en format SVG |
 | `slideshow.py` | Generació de pàgines HTML per visualitzar partides |
 | `main.py` | Punt d'entrada del programa |
@@ -52,12 +52,14 @@ S'utilitza una jerarquia de classes tant per a les caselles (`Tile`) com per a l
 
 Per exemple, quan un jugador cau en una casella, simplement es crida `tile.land_on(player)` i el comportament correcte s'executa automàticament segons el tipus de casella (cobrar lloguer, treure una targeta, pagar impostos, etc.).
 
-### Patró estratègia
+### Estratègia del jugador
 
-Les decisions dels jugadors automàtics (comprar propietats, construir cases) es deleguen a una classe `PlayerStrategy`. Això permet canviar el comportament d'un jugador sense modificar la lògica del joc. La implementació `SimpleStrategy` proporcionada:
+Les decisions dels jugadors automàtics (comprar propietats, construir cases) es defineixen a través de la classe `Strategy`. Aquesta classe centralitza la lògica de decisions del jugador:
 
 - Compra qualsevol propietat si té prou diners.
-- Construeix cases/hotels en carrers on té el monopoli, una construcció per torn.
+- **Construcció limitada per torn**: Construeix com a màxim una casa o un hotel per torn en carrers on té el monopoli. Aquesta restricció fa que la progressió del joc sigui més lenta i visible, permetent als jugadors observar clarament l'evolució de les propietats.
+
+La restricció de construcció s'implementa a través del mètode `build()` de `Strategy`, que fa `return` després de completar una construcció, impedint múltiples edificacions en el mateix torn.
 
 ### Funcions fàbrica
 

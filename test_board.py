@@ -37,7 +37,7 @@ def test_roll_dice() -> None:
     assert board.current_dice() == (d1, d2)
 
 def test_get_tile_wrap_around() -> None:
-    """Tests if get_tile handles indices larger than 39 correctly using modulo."""
+    """Tests if get_tile handles indices larger than 39 correctly."""
     board = create_test_board()
     
     tile_0 = board.get_tile(0)
@@ -56,7 +56,7 @@ def test_save_and_load_board() -> None:
     current_dice_state = board.current_dice()
     
     # We use a simple hardcoded filename for the test
-    filepath = "test_dummy_board.pkl"
+    filepath = "test_board.pkl"
 
     # Save and Load
     save_board(board, filepath)

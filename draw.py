@@ -16,7 +16,7 @@ CENTER_MARGIN = 50  # Padding from inner board edge to player quadrants
 FONT_FAMILY = "Helvetica"
 
 # Property color name -> fill color for tiles
-COLOR_MAP = {
+COLOR_MAP: dict[str, str] = {
     "brown": "#8B4513",
     "light_blue": "#87CEEB",
     "pink": "#FF69B4",
@@ -63,7 +63,8 @@ def tile_fill_color(tile: Tile) -> str:
         if color_attr is not None:
             # If color is a method, call it to get the string value
             color = color_attr() if callable(color_attr) else color_attr
-            return COLOR_MAP.get(color, "#E0E0E0")
+            if isinstance(color, str):
+                return COLOR_MAP.get(color, "#E0E0E0")
     if tile.type() == "station":
         return "#E0E0E0"
     if tile.type() == "utility":
@@ -259,7 +260,8 @@ def draw_houses_and_hotels(d: dw.Drawing, board: Board) -> None:
         if tile.type() != "property":
             continue
         houses_attr = getattr(tile, "num_houses", None)
-        houses = houses_attr() if callable(houses_attr) else 0
+        houses_value = houses_attr() if callable(houses_attr) else 0
+        houses = houses_value if isinstance(houses_value, int) else 0
         hotel_attr = getattr(tile, "has_hotel", None)
         has_hotel = hotel_attr() if callable(hotel_attr) else False
         if houses == 0 and not has_hotel:
@@ -467,7 +469,7 @@ def draw_players_center(d: dw.Drawing, board: Board, show_number: bool = False) 
         ty += line_h
         info_parts = [
             f"💵 £{player.money()}",
-            f"💳 {player.get_out_of_jail_cards()}",
+            f"💳 {player.get_out_of_jail_free_cards()}",
             f"⛓️ {player.turns_in_prison()}",
         ]
         info_text = " · ".join(info_parts)
@@ -504,8 +506,9 @@ def draw_players_center(d: dw.Drawing, board: Board, show_number: bool = False) 
                 # Symbol: ⬤ (color) for streets, 🚆 stations, 💡 electric, 🚰 water
                 if p.type() == "property":
                     # ⬤ with group color for streets (circle for reliable color)
-                    color = getattr(p, "color", None)
-                    fill = COLOR_MAP.get(color, "#808080") if color else "#808080"
+                    color_attr = getattr(p, "color", None)
+                    color = color_attr() if callable(color_attr) else color_attr
+                    fill = COLOR_MAP.get(color, "#808080") if isinstance(color, str) else "#808080"
                     d.append(
                         dw.Circle(
                             qx + pad + 6,
