@@ -32,7 +32,7 @@ class Card:
         return self._action
 
     def execute(self, player: Player, board: Board) -> None:
-        """"""
+        """Executes the card's effect on the given player and board. Must be overridden by subclasses."""
         raise NotImplementedError("Subclasses must implement execute().")
 
 class MoneyCard(Card):
@@ -121,7 +121,7 @@ class MoveNearestCard(Card):
             board.move_to_nearest_utility(player, self._multiplier)
 
 def build_card(data: dict[str, Any]) -> Card:
-    """Factory to build cards from JSON data."""
+    """Builds and returns the appropriate Card subclass from the given JSON data dict."""
     c_id, title, desc, action = data["id"], data["title"], data["description"], data["action"]
 
     if action == "collect_money":

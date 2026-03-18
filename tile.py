@@ -113,8 +113,8 @@ class Property(Tile):
                 self._owner = player
                 player.owned_properties().add(self)
 
-    def get_rent(self) -> int:  # this method is implemented differently in each subclass
-        """Calculates rent. Must be overridden by subclasses."""
+    def get_rent(self) -> int:  
+        """Calculates and returns the rent amount. Must be overridden by subclasses."""
         raise NotImplementedError("Subclasses must implement get_rent()")
     
     def get_owner(self) -> Player | None:
@@ -130,13 +130,13 @@ class Property(Tile):
         return self._is_mortgaged
 
     def can_mortgage(self) -> bool:
-        """Checks if the property can be mortgaged."""
+        """Returns True if the property can be mortgaged."""
         if self._owner is None or self._is_mortgaged:
             return False
         return True
 
     def mortgage(self) -> bool:
-        """Mortgages the property for half its price."""
+        """Mortgages the property for half its price. Returns True if successful."""
         if self.can_mortgage() and self._owner is not None: 
             self._is_mortgaged = True
             mortgage_value = int(self._price / 2)
@@ -146,7 +146,7 @@ class Property(Tile):
         return False
 
     def can_unmortgage(self) -> bool:
-        """Checks if the property can be unmortgaged (has enough money)."""
+        """Returns True if the property can be unmortgaged (owner has enough money)."""
         if self._owner is None or not self._is_mortgaged:
             return False
             
@@ -157,7 +157,7 @@ class Property(Tile):
         return True
 
     def unmortgage(self) -> bool:
-        """Unmortgages the property paying the mortgage value + 10%."""
+        """Unmortgages the property paying the mortgage value + 10%. Returns True if successful."""
         if self.can_unmortgage() and self._owner is not None:
             unmortgage_cost = int((self._price / 2) * 1.1)
             self._owner.transaction(-unmortgage_cost)
@@ -167,7 +167,7 @@ class Property(Tile):
         return False
     
     def set_owner(self, player: Player|None) -> None:
-        """Sets the owner of the property."""
+        """Sets the owner of the property to the given player, or None to unown it."""
         self._owner = player
 
 class Street(Property):
@@ -262,7 +262,7 @@ class Street(Property):
         return self._num_houses
         
     def can_build_house(self, board: Board) -> bool:
-        """Checks if a house can be built following the official Monopoly rules."""
+        """Returns True if a house can be built on this street."""
         if self._owner is None:
             return False
             
@@ -302,7 +302,7 @@ class Street(Property):
         return False
     
     def can_sell_house(self) -> bool:
-        """Checks if a house can be sold maintaining the uniform building rule."""
+        """Returns True if a house can be sold while maintaining the uniform building rule."""
         if self._owner is None or self._has_hotel or self._num_houses == 0:
             return False
             
@@ -318,7 +318,7 @@ class Street(Property):
         return True
 
     def sell_house(self) -> bool:
-        """Sells a house for half its price."""
+        """Sells a house for half its price. Returns True if successful."""
         if self.can_sell_house() and self._owner is not None:   # ensures we have a house to sell before trying to sell it
             sell_price = int(self._house_cost / 2)
             self._owner.transaction(sell_price)
@@ -333,8 +333,8 @@ class Street(Property):
         """Returns True if the street currently has a hotel."""
         return self._has_hotel
 
-    def can_build_hotel(self, board: 'Board') -> bool:
-        """Checks if a hotel can be built following the official rules."""
+    def can_build_hotel(self, board: Board) -> bool:
+        """Returns True if a hotel can be built on this street using board for rule checks."""
         if self._owner is None:
             return False
             
@@ -356,7 +356,7 @@ class Street(Property):
         return True
 
     def build_hotel(self, board: Board) -> bool:
-        """Attempts to build a hotel by replacing 4 houses. Returns True if successful."""
+        """Attempts to build a hotel by replacing 4 houses using board for rule checks. Returns True if successful."""
         if self.can_build_hotel(board) and self._owner is not None:  # ensures we have an owner before trying to charge them
             self._owner.transaction(-self._hotel_cost)
             self._num_houses = 0 
@@ -366,13 +366,13 @@ class Street(Property):
         return False
     
     def can_sell_hotel(self) -> bool:
-        """Checks if a hotel can be sold."""
+        """Returns True if the hotel can be sold."""
         if not self._has_hotel:
             return False
         return True
 
     def sell_hotel(self) -> bool:
-        """Sells a hotel for half its price and leaves 4 houses on the street."""
+        """Sells the hotel for half its price, leaving 4 houses. Returns True if successful."""
         if self.can_sell_hotel() and self._owner is not None:   # ensures we have a hotel to sell before trying to sell it
             sell_price = int(self._hotel_cost / 2)
             self._owner.transaction(sell_price)
@@ -383,7 +383,7 @@ class Street(Property):
         return False
     
     def can_mortgage(self) -> bool:
-        """Checks if the street can be mortgaged (must have no houses or hotels)."""
+        """Returns True if the street can be mortgaged (must have no houses or hotels)."""
         if self._num_houses > 0 or self._has_hotel:
             return False
         # If it has no buildings, check the standard property rules from the parent class
@@ -421,7 +421,7 @@ class Station(Property):
         self._rent_with_4_station = rent_with_4_stations
 
     def get_rent(self) -> int:
-        """Calculates rent based on how many stations the owner has."""
+        """Returns the rent amount based on how many stations the owner has."""
         if self._owner is None:
             return 0
         
@@ -462,8 +462,7 @@ class Utility(Property):
         self._rent_with_both = rent_multiplier_both
 
     def get_rent(self) -> int:  
-        """Returns the price that a player has to pay if 
-        they land on the station at the current stage."""
+        """Returns the rent a player has to pay when landing on this utility."""
         if self._owner is None:
             return 0
         

@@ -27,7 +27,7 @@ class Deck:
         return self._cards.pop(0)
 
     def add_card(self, card: Card) -> None:
-        """Places a card at the bottom of the deck."""
+        """Places the given card at the bottom of the deck."""
         self._cards.append(card)
 
     def size(self) -> int:

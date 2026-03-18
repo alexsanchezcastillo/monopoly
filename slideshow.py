@@ -8,7 +8,7 @@ import sys
 
 
 def generate_slideshow(svgs: list[str]) -> str:
-    """Generate HTML page to display slideshow of SVGs with navigation buttons."""
+    """Generates and returns an HTML page to display a slideshow of the given SVG file paths."""
     if not svgs:
         return "<html><body><p>No SVGs to display</p></body></html>"
 

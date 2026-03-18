@@ -195,7 +195,7 @@ def test_mortgages():
     assert street.is_mortgaged() is True
     assert player.money() == initial_money + 100 
     
-    # Forviden rent while mortgaged
+    # No rent while mortgaged
     visitor = Player(board=board, name="Visitor", piece="Car", color="green", index=3)
     visitor_money = visitor.money()
     street.land_on(visitor)

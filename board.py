@@ -29,6 +29,7 @@ class Board:
         community_chest_json_path: str,
         players_json_path: str,
     ):
+        """Initializes the board by loading tiles, cards and players from the given JSON files."""
         self._tiles_path = tiles_json_path
         self._chance_path = chance_json_path
         self._community_chest_path = community_chest_json_path
@@ -159,7 +160,7 @@ class Board:
         self.next_player()
 
     def remove_player(self, player: Player) -> None:
-        """Removes a bankrupt player from the game and adjusts the turn index."""
+        """Removes the given player from the game and adjusts the turn index."""
         player_idx = self._list_players.index(player)
         self._list_players.remove(player)
         if player_idx < self._current_player_index:
@@ -172,7 +173,7 @@ class Board:
         return self._list_players
     
     def get_player(self, index: int) -> Player:
-        """Returns the player at the specified index."""
+        """Returns the player at the given index."""
         return self._list_players[index]
 
     def tiles(self) -> list[Tile]:
@@ -199,11 +200,11 @@ class Board:
        return self._current_dice
     
     def get_tile(self, index: int) -> Tile:
-        """Returns the tile at the specified index."""
+        """Returns the tile at the given index (wraps around if out of bounds)."""
         return self._list_tiles[index % self.num_tiles()]
     
     def get_property(self, index: int) -> Property:
-        """Returns the property tile at the specified index, or raises an error if it's not a property."""
+        """Returns the property tile at the given index, or raises AttributeError if it's not a property."""
         tile = self.tiles()[index]
         if isinstance(tile, Property):
             return tile
@@ -211,17 +212,13 @@ class Board:
             raise AttributeError(f"Tile '{tile.name()}' is not of type property.")
         
     def move_to_nearest_station(self, player: Player, multiplier: int = 1) -> None:
-        """
-        Moves the player to the nearest station ahead of them.
-        """
+        """Moves the given player to the nearest station ahead, applying the rent multiplier."""
         # Station positions
         stations = [5, 15, 25, 35]
         self.move_to_nearest(player, stations, multiplier)
 
     def move_to_nearest_utility(self, player: Player, multiplier: int = 1) -> None:
-        """
-        Moves the player to the nearest utility.
-        """
+        """Moves the given player to the nearest utility, applying the rent multiplier."""
         # Utility positions
         utilities = [12, 28]
         self.move_to_nearest(player, utilities, multiplier)
@@ -264,7 +261,7 @@ class Board:
             owner.transaction(rent)
         
     def get_color_group(self, color: str) -> list[Property]:
-        """Returns a list of all streets of a specific color group."""
+        """Returns a list of all streets of the given color."""
         return [tile for tile in self._list_tiles 
                 if isinstance(tile, Street) and tile.color() == color]
     
@@ -277,18 +274,18 @@ class Board:
         return self._community_chest_deck
     
     def has_monopoly(self, player: Player, color: str) -> bool:
-        """Returns True if the player owns all properties of the given color."""
+        """Returns True if the given player owns all properties of the given color."""
         color_group = self.get_color_group(color)
         if not color_group:
             return False
         return all(p.get_owner() == player for p in color_group)
 
 def save_board(board: Board, pickle_path: str) -> None:
-    """Saves the board in the document named pickle_path."""
+    """Saves the board state to a pickle file at the given path."""
     with open(pickle_path, "wb") as f:  # wb = write binary
         pickle.dump(board, f)
 
 def load_board(pickle_path: str) -> Board:
-    """Retrieves the data saved in the document named pickle_path."""
+    """Loads and returns a board from a pickle file at the given path."""
     with open(pickle_path, "rb") as f:  # rb = read binary
         return pickle.load(f)

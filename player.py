@@ -34,7 +34,7 @@ class Player:
         color: str,
         index: int,
     ): 
-        """Initializes a new player with data from the JSON file."""
+        """Initializes a new player with the given board, name, piece, color and index."""
 
         # Attributes loaded from JSON
         self._board = board
@@ -55,7 +55,8 @@ class Player:
     
     def decide_buy(self, property_tile: Property) -> bool:
         """
-        Delegates the purchase decision to the player's current strategy.
+        Delegates the purchase decision for property_tile to the player's strategy.
+        Returns True if the strategy decides to buy.
         """
         return self._strategy.buy_property(self, property_tile)
     
@@ -102,7 +103,7 @@ class Player:
             print(f"{self._name} passed GO and collected {GO_SALARY}!")
 
     def get_color_group_player(self, color: str) -> list[Street]:
-        """Returns a list of all streets of a specific color owned by the player."""
+        """Returns a list of all streets of the given color owned by the player."""
         return [street for street in self._owned_properties 
                 if isinstance(street, Street) and street.color() == color]
 
@@ -142,7 +143,7 @@ class Player:
         return self._money < 0
     
     def go_to_jail(self, jail_position: int) -> None:
-        """Sends the player directly to jail without collecting GO salary."""
+        """Sends the player directly to the given jail_position without collecting GO salary."""
         self._position = jail_position
         self._is_in_jail = True
         self._jail_turns = 0
@@ -193,16 +194,16 @@ class Player:
         return self._creditor
 
     def set_creditor(self, player: Player | None) -> None:
-        """Sets the creditor (the player this player owes rent to)."""
+        """Sets the creditor to the given player, or None if the debt is to the bank."""
         self._creditor = player
     
     def transaction(self, amount: int) -> None:
-        """Adjusts the player's balance by the given amount (positive or negative)."""
+        """Adjusts the player's balance by amount (positive to earn, negative to pay)."""
         self._money += amount
         return
     
     def buy_property(self, property_tile: Property) -> None:
-        """Purchases a property tile: adds it to owned properties, deducts the price, and sets ownership."""
+        """Purchases the given property_tile: adds it to owned properties, deducts the price, and sets ownership."""
         self._owned_properties.add(property_tile)
         self.transaction(-property_tile.price())
         property_tile.set_owner(self)
@@ -210,5 +211,5 @@ class Player:
 
 
 def build_player(board: Board, data: dict[str, Any], index: int) -> Player:
-    """Build a Player from JSON dictionary with 'name', 'piece', and 'color' keys."""
+    """Builds and returns a Player from the given board, JSON data dict, and player index."""
     return Player(board, data["name"], data["piece"], data["color"], index)
