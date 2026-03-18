@@ -30,19 +30,7 @@ COLOR_MAP: dict[str, str] = {
 
 def tile_rect(position: int) -> tuple[float, float, float, float]:
     """Return (x, y, width, height) for the tile at given board position (0-39).
-    
-    Layout matches real Monopoly: GO bottom-right, play clockwise.
-    
-    Args:
-        position: Board position (0-39).
-    
-    Returns:
-        Tuple of (x, y, width, height) where:
-        - x: horizontal coordinate from left edge (0=left, 1000=right)
-        - y: vertical coordinate from top edge (0=top, 1000=bottom)
-        - width: tile width in pixels
-        - height: tile height in pixels
-    """
+    Layout matches real Monopoly: GO bottom-right, play clockwise."""
     tw = TILE_SIZE
     if 0 <= position <= 10:
         # Bottom row: GO (0) at right, Jail (10) at left; leftward
@@ -100,7 +88,7 @@ def tile_fill_color(tile: Tile) -> str:
 
 
 def draw_board_tiles(d: dw.Drawing, board: Board, show_number: bool = False) -> None:
-    """Draw all tiles around the board perimeter with icons, names, and prices."""
+    """Draw all tiles on the left board area."""
     for tile in board.tiles():
         x, y, w, h = tile_rect(tile.position())
         fill = tile_fill_color(tile)
@@ -205,27 +193,50 @@ def draw_board_tiles(d: dw.Drawing, board: Board, show_number: bool = False) -> 
                     stroke_width=1,
                 )
             )
-        # Tile name: one line per word, centered in the tile; buy price below for properties
+        # Tile name: word-wrapped to fit tile width, below the emoji zone
         words = tile.name().split()
-        if not words:
-            words = [tile.name()]
+        price_text = None
         if tile.type() in ("property", "station", "utility"):
             price_method = getattr(tile, "price", None)
             if callable(price_method):
-                words.append(f"£{price_method()}")
-        cx, cy = x + w / 2, y + h / 2
-        font_size = min(20, max(6, int(w / 8)))
-        d.append(
-            dw.Text(
-                " ".join(words),
-                font_size,
-                cx,
-                cy,
-                text_anchor="middle",
-                dominant_baseline="middle",
-                font_family=FONT_FAMILY,
+                price_text = f"£{price_method()}"
+        # Wrap words into lines that fit within tile width
+        # Approximate: each char ~0.6 * font_size wide
+        font_size = min(11, max(6, int(w / 9)))
+        max_chars = max(4, int(w / (font_size * 0.55)))
+        lines: list[str] = []
+        current_line = ""
+        for word in words:
+            test = f"{current_line} {word}".strip()
+            if len(test) <= max_chars:
+                current_line = test
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        if current_line:
+            lines.append(current_line)
+        if price_text:
+            lines.append(price_text)
+        # Draw text in the area below the emoji (y+40) to near bottom of tile
+        cx = x + w / 2
+        text_top = y + 42
+        text_bottom = y + h - 4
+        line_h = font_size + 2
+        total_h = len(lines) * line_h
+        start_y = text_top + (text_bottom - text_top - total_h) / 2 + font_size / 2
+        for i, line in enumerate(lines):
+            d.append(
+                dw.Text(
+                    line,
+                    font_size,
+                    cx,
+                    start_y + i * line_h,
+                    text_anchor="middle",
+                    dominant_baseline="middle",
+                    font_family=FONT_FAMILY,
+                )
             )
-        )
         # Mortgaged properties: show "M" on the inside (inner corner)
         mort_attr = getattr(tile, "is_mortgaged", None)
         tile_is_mortgaged = mort_attr() if callable(mort_attr) else bool(mort_attr) if mort_attr is not None else False
@@ -245,12 +256,12 @@ def draw_board_tiles(d: dw.Drawing, board: Board, show_number: bool = False) -> 
             )
         # Owned properties: show owner number or piece in white at bottom right
         if tile.type() in ("property", "station", "utility"):
-            owner = getattr(tile, "owner", None)
+            owner = tile.get_owner()
             if owner is not None:
                 if show_number:
-                    label = str(owner.index + 1)
+                    label = str(owner.index() + 1)
                 else:
-                    label = owner.piece
+                    label = owner.piece()
                 d.append(
                     dw.Text(
                         label,
@@ -589,6 +600,3 @@ def draw(board: Board, svg_path: str, show_number: bool = False) -> None:
     draw_dice_in_current_player_box(g, board)
     d.append(g)
     d.save_svg(svg_path)
-    
-board = Board("data/tiles.json", "data/chance.json", "data/community-chest.json", "data/players.json")
-draw(board, "tauler.svg")

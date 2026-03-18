@@ -1,8 +1,7 @@
+import os
 import pytest
-from typing import Any
 from board import Board, save_board, load_board
 from tile import Tile, Property
-from card import Card
 
 def create_test_board() -> Board:
     """
@@ -65,6 +64,9 @@ def test_save_and_load_board() -> None:
     # Verify the loaded object matches the original
     assert loaded_board.num_tiles() == board.num_tiles()
     assert loaded_board.current_dice() == current_dice_state
+
+    # Clean up the temporary file
+    os.remove(filepath)
 
 def test_get_property_success_and_exception() -> None:
     """
