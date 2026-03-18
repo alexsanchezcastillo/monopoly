@@ -30,7 +30,19 @@ COLOR_MAP: dict[str, str] = {
 
 def tile_rect(position: int) -> tuple[float, float, float, float]:
     """Return (x, y, width, height) for the tile at given board position (0-39).
-    Layout matches real Monopoly: GO bottom-right, play clockwise."""
+    
+    Layout matches real Monopoly: GO bottom-right, play clockwise.
+    
+    Args:
+        position: Board position (0-39).
+    
+    Returns:
+        Tuple of (x, y, width, height) where:
+        - x: horizontal coordinate from left edge (0=left, 1000=right)
+        - y: vertical coordinate from top edge (0=top, 1000=bottom)
+        - width: tile width in pixels
+        - height: tile height in pixels
+    """
     tw = TILE_SIZE
     if 0 <= position <= 10:
         # Bottom row: GO (0) at right, Jail (10) at left; leftward
@@ -88,7 +100,7 @@ def tile_fill_color(tile: Tile) -> str:
 
 
 def draw_board_tiles(d: dw.Drawing, board: Board, show_number: bool = False) -> None:
-    """Draw all tiles on the left board area."""
+    """Draw all tiles around the board perimeter with icons, names, and prices."""
     for tile in board.tiles():
         x, y, w, h = tile_rect(tile.position())
         fill = tile_fill_color(tile)

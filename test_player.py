@@ -15,8 +15,8 @@ def create_test_board() -> Board:
     )
 
 
-def test_player_initialization() -> None:
-    """Tests if a player is initialized with correct default values."""
+def test_player_initial_state() -> None:
+    """Tests that a new player has the correct default state."""
     board = create_test_board()
     player = board.current_player()
 
@@ -26,13 +26,6 @@ def test_player_initialization() -> None:
     assert isinstance(player.color(), str)
     assert isinstance(player.piece(), str)
     assert player == board.get_player(0)
-
-
-def test_player_basic_getters() -> None:
-    """Tests that all basic getters return expected default values."""
-    board = create_test_board()
-    player = board.current_player()
-
     assert player.board() == board
     assert isinstance(player.index(), int)
     assert player.get_out_of_jail_free_cards() == 0

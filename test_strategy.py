@@ -1,4 +1,3 @@
-import pytest
 from strategy import Strategy
 from player import Player
 from tile import Street

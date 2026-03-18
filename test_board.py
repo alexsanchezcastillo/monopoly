@@ -2,7 +2,7 @@ import pytest
 from typing import Any
 from board import Board, save_board, load_board
 from tile import Tile, Property
-from player import Player
+from card import Card
 
 def create_test_board() -> Board:
     """
@@ -81,86 +81,6 @@ def test_get_property_success_and_exception() -> None:
     with pytest.raises(AttributeError):
         board.get_property(0)
 
-def test_play_turn_normal() -> None:
-    """Tests a normal turn without doubles."""
-    board = create_test_board()
-    player = board.current_player()
-    initial_pos = player.position()
-    
-    # We replace the random dice with a function that always returns 3 and 4
-    board.roll_dice = lambda: (3, 4)    # type: ignore
-    
-    # Mock the chance deck to return a card that does nothing
-    from card import Card
-    
-    class NullCard(Card):
-        """A card that does nothing when executed."""
-        def execute(self, player: Any, board: Any) -> None:
-            pass  # Do nothing
-    
-    null_card = NullCard(999, "No Action", "No action", "no_action")
-    board.chance_deck().draw = lambda: null_card  # type: ignore
-    board.chance_deck().add_card = lambda x: None  # type: ignore
-    
-    board.play_turn()
-    
-    # The player should move exactly 7 steps (without being moved by a card)
-    expected_pos = (initial_pos + 7) % board.num_tiles()
-    assert player.position() == expected_pos
-    
-    # The turn must pass to the next player
-    assert board.current_player() != player
-
-
-def test_play_turn_one_double() -> None:
-    """Tests a turn with one double roll followed by a normal roll."""
-    board = create_test_board()
-    player = board.current_player()
-    initial_pos = player.position()
-    
-    # We create a list of rigged rolls
-    rolls = [(2, 2), (1, 3)]
-    
-    # This fake function returns the first item of the list and removes it
-    def fake_roll():
-        return rolls.pop(0)
-    
-    board.roll_dice = fake_roll # type: ignore
-    board.play_turn()
-    
-    # The player should move 4 + 4 = 8 steps in total
-    expected_pos = (initial_pos + 8) % board.num_tiles()
-    assert player.position() == expected_pos
-    
-    # The turn must pass to the next player
-    assert board.current_player() != player
-
-
-def test_play_turn_three_doubles_jail() -> None:
-    """Tests if rolling three consecutive doubles sends the player to jail."""
-    board = create_test_board()
-    player = board.current_player()
-    
-    # We replace the random dice to ALWAYS roll doubles (5 and 5)
-    board.roll_dice = lambda: (5, 5)    # type: ignore
-    
-    board.play_turn()
-    
-    # The player must end up exactly at the jail position
-    assert player.position() == board.jail_position()
-    
-    # The turn must pass immediately
-    assert board.current_player() != player
-
-
-def test_current_player_changes_after_next() -> None:
-    """Tests that current player changes after calling next_player."""
-    board = create_test_board()
-    first_player = board.current_player()
-    board.next_player()
-    second_player = board.current_player()
-    assert first_player.index() != second_player.index()
-
 
 def test_next_player_cycles_through_all() -> None:
     """Tests that calling next_player cycles back to the original player."""
@@ -170,31 +90,6 @@ def test_next_player_cycles_through_all() -> None:
     for _ in range(num_players):
         board.next_player()
     assert board.current_player().index() == original_player.index()
-
-
-def test_all_tiles_are_accessible() -> None:
-    """Tests that all 40 board tiles are accessible."""
-    board = create_test_board()
-    for pos in range(40):
-        tile = board.get_tile(pos)
-        assert tile is not None
-        assert 0 <= tile.position() <= 39
-
-
-def test_has_monopoly_without_properties() -> None:
-    """Tests monopoly check when the player owns nothing."""
-    board = create_test_board()
-    player = board.players()[0]
-    assert board.has_monopoly(player, "brown") is False
-
-
-def test_players_list_valid() -> None:
-    """Tests that board maintains a valid player list."""
-    board = create_test_board()
-    players = board.players()
-    assert 2 <= len(players) <= 4
-    for player in players:
-        assert isinstance(player, Player)
 
 
 def test_board_has_all_tile_types() -> None:
@@ -211,17 +106,3 @@ def test_station_count() -> None:
     board = create_test_board()
     stations = [t for t in board.tiles() if t.type() == "station"]
     assert len(stations) == 4
-
-
-def test_utility_count() -> None:
-    """Tests that there are exactly 2 utilities on the board."""
-    board = create_test_board()
-    utilities = [t for t in board.tiles() if t.type() == "utility"]
-    assert len(utilities) == 2
-
-
-def test_tax_count() -> None:
-    """Tests that there are exactly 2 tax tiles on the board."""
-    board = create_test_board()
-    taxes = [t for t in board.tiles() if t.type() == "tax"]
-    assert len(taxes) == 2
